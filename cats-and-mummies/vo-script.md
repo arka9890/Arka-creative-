@@ -36,3 +36,9 @@ Rate +8% (regenerated to fit the 10s slot).
 > The cat was never just loved. It was worshipped, farmed, and sold. Devotion, mass-produced. Would you buy one?
 
 Rate +8% (regenerated to fit the 10s slot).
+
+## cats-06.mp3 — v3 loop bridge (2026-10-30)
+
+> The cat was never just loved. It was worshipped, farmed, and sold. Devotion, mass-produced. So — what happened if you killed one?
+
+Rate +8%. Ends on a question that flows straight back into clip 1 ("Kill a cat in ancient Egypt…") for a seamless loop. v1 ("Would you buy one?") kept as `cats-06-v1.mp3`.
