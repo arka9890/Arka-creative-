@@ -39,7 +39,7 @@
 **Interfaces:**
 - Produces: 18 images at 768×1376 in `assets/img/`; three leveled SFX wavs at `assets/sfx/`.
 
-- [ ] **Step 1: Install/refresh hyperframes skills, read the core contract + audio docs**
+- [x] **Step 1: Install/refresh hyperframes skills, read the core contract + audio docs**
 
 ```bash
 cd /root/workspace/cats-hyperframes && npx hyperframes skills update
@@ -47,7 +47,7 @@ npx hyperframes docs data-attributes   # note the audio volume attribute if any
 ```
 Expected: skill files present; docs output captured (use its volume attr name in Step 4 if it exists).
 
-- [ ] **Step 2: Copy the 18 Flow images over `assets/img/`**
+- [x] **Step 2: Copy the 18 Flow images over `assets/img/`**
 
 ```bash
 for n in $(seq -w 1 18); do cp /root/workspace/flow-laptop/numbered/img-$n.jpg /root/workspace/cats-hyperframes/assets/img/img-$n.jpg; done
@@ -55,14 +55,14 @@ python3 -c "from PIL import Image; import glob; fs=sorted(glob.glob('/root/works
 ```
 Expected: `18 imgs ok`.
 
-- [ ] **Step 3: Copy + level the three SFX**
+- [x] **Step 3: Copy + level the three SFX**
 
 Source: `/root/workspace/remotion-video/public/sfx/{stamp,flip,chime}.wav` → `assets/sfx/{hook-stamp,whoosh,seam-chime}.wav`.
 Measure each with `ffmpeg -i f.wav -af volumedetect -f null -` (note `max_volume`), then rewrite with `-af volume=<X>dB` so `max_volume` lands at **-18 dB** (X = -18 − measured). Re-measure after.
 
 Expected: all three report `max_volume: -18.0 dB` (±0.5).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add -A && git commit -m "assets: flow images + leveled sfx for retention re-cut"
@@ -80,11 +80,11 @@ git add -A && git commit -m "assets: flow images + leveled sfx for retention re-
 **Interfaces:**
 - Produces: `assets/vo/cats-06.mp3`, duration ≤9.9s, ends on the bridge sentence.
 
-- [ ] **Step 1: Write the exact VO6 line**
+- [x] **Step 1: Write the exact VO6 line**
 
 Text (pinned): `The cat was never just loved. It was worshipped, farmed, and sold. Devotion, mass-produced. So — what happened if you killed one?`
 
-- [ ] **Step 2: Synthesize with edge-tts and check duration**
+- [x] **Step 2: Synthesize with edge-tts and check duration**
 
 ```bash
 python3 -c "import asyncio,edge_tts; asyncio.run(edge_tts.Communicate(open('vo6-loop.txt').read(),'en-US-ChristopherNeural',rate='+8%').save('cats-06-new.mp3'))"
@@ -92,7 +92,7 @@ ffprobe -v error -show_entries format=duration -of csv=p=0 cats-06-new.mp3
 ```
 Expected: ≤9.9s. If >9.9s, retry at rate `+10%` (loop until ≤9.9s).
 
-- [ ] **Step 3: Swap in + record in vo-script.md, commit**
+- [x] **Step 3: Swap in + record in vo-script.md, commit**
 
 `cp cats-06-new.mp3 assets/vo/cats-06.mp3` (old saved as `cats-06-v1.mp3`); append v3 note to `vo-script.md`; commit `feat(vo): loop-bridging closing line`.
 
@@ -122,24 +122,24 @@ Expected: ≤9.9s. If >9.9s, retry at rate `+10%` (loop until ≤9.9s).
 - VO `<audio>` data-start = clip_start, data-duration = probed +0.05.
 - Last slide: keep hold (no exit); Ken Burns on s18 and s1 both `zoom-in` so motion direction matches across the replay cut.
 
-- [ ] **Step 1: Rewrite generator per pinned values**
+- [x] **Step 1: Rewrite generator per pinned values**
 
-- [ ] **Step 2: Run it; assert schedule integrity**
+- [x] **Step 2: Run it; assert schedule integrity**
 
 ```bash
 python3 /tmp/opencode/gen-hf.py
 ```
 Then a python check: parses emitted `index.html`, asserts for each of the 6 `<audio>` VO clips `float(data-duration) >= probed(file)+0.05`, asserts `data-duration` root == TOTAL, asserts exactly 18 slides + 18 captions, asserts `#title` duration == 1.2, asserts SFX count == 7. Print `schedule ok`.
 
-- [ ] **Step 3: Commit** `feat(composition): vo-driven retention timeline with loop seam`.
+- [x] **Step 3: Commit** `feat(composition): vo-driven retention timeline with loop seam`.
 
 ---
 
 ### Task 4: `npm run check` green
 
-- [ ] **Step 1:** `cd cats-hyperframes && npm run check`
-- [ ] **Step 2:** Fix every ERROR (warnings: review & accept consciously); re-run until green. Expected: `0 errors`.
-- [ ] **Step 3:** Commit fixes if any.
+- [x] **Step 1:** `cd cats-hyperframes && npm run check`
+- [x] **Step 2:** Fix every ERROR (warnings: review & accept consciously); re-run until green. Expected: `0 errors`.
+- [x] **Step 3:** Commit fixes if any.
 
 ---
 
@@ -147,18 +147,18 @@ Then a python check: parses emitted `index.html`, asserts for each of the 6 `<au
 
 **Files:** snapshots under `.hyperframes/` or CLI-chosen output dir.
 
-- [ ] **Step 1:** `npx hyperframes snapshot --at 0,0.5,3,16,34,57` (tune last to TOTAL−0.5).
-- [ ] **Step 2: Read every frame** and verify: t=0 full-brightness slide 1 + title words mid-pop + hook chip visible by 0.55; captions word-popped with gold keyword; no empty/black frame anywhere; last frame shows s18 (replay-pair to t=0).
-- [ ] **Step 3:** If any fail → fix generator → regenerate → re-check → re-snapshot (loop).
+- [x] **Step 1:** `npx hyperframes snapshot --at 0,0.5,3,16,34,57` (tune last to TOTAL−0.5).
+- [x] **Step 2: Read every frame** and verify: t=0 full-brightness slide 1 + title words mid-pop + hook chip visible by 0.55; captions word-popped with gold keyword; no empty/black frame anywhere; last frame shows s18 (replay-pair to t=0).
+- [x] **Step 3:** If any fail → fix generator → regenerate → re-check → re-snapshot (loop).
 
 ---
 
 ### Task 6: Render + final verification
 
-- [ ] **Step 1:** `npm run render`
-- [ ] **Step 2: Verify output**: `ffprobe` MP4 → video duration ≈ TOTAL (±0.1s), has audio stream; extract first & last video frames (`ffmpeg -sseof -0.1 …`), confirm last frame ≠ black and visually rhymes with frame 1 (same motion direction noted).
-- [ ] **Step 3:** Confirm loop-seam timing: total audio duration equals video duration (no dead tail >0.35s) via `ffprobe` on both streams.
-- [ ] **Step 4:** Commit render artifact policy: MP4 stays untracked (repo hygiene) unless user wants it committed; commit any generator/check fixes.
+- [x] **Step 1:** `npm run render`
+- [x] **Step 2: Verify output**: `ffprobe` MP4 → video duration ≈ TOTAL (±0.1s), has audio stream; extract first & last video frames (`ffmpeg -sseof -0.1 …`), confirm last frame ≠ black and visually rhymes with frame 1 (same motion direction noted).
+- [x] **Step 3:** Confirm loop-seam timing: total audio duration equals video duration (no dead tail >0.35s) via `ffprobe` on both streams.
+- [x] **Step 4:** Commit render artifact policy: MP4 stays untracked (repo hygiene) unless user wants it committed; commit any generator/check fixes.
 
 ---
 
