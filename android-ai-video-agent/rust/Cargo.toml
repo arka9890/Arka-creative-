@@ -1,0 +1,12 @@
+[package]
+name = "ai_agent"
+version = "0.1.0"
+edition = "2021"
+description = "AI Video Agent native engine (JNI cdylib for the Android app)"
+
+[lib]
+name = "ai_agent"
+crate-type = ["cdylib"]
+
+[dependencies]
+jni = "0.21"
