@@ -1,4 +1,9 @@
 //! Pipeline orchestration: LLM plan → gflow-cli generate → Hyperframes edit → render.
+//!
+//! gflow-cli drives Google Flow (Veo/Imagen) through a **headed Chromium** (Playwright
+//! persistent profile). Google auth + reCAPTCHA require a headed browser, so the browser
+//! surface is provided by noVNC → VNC server → WebView (see design doc). gflow-cli itself
+//! must be installed in the proot+Alpine Linux environment on Android.
 
 use crate::omniroute::OmnirouteClient;
 use std::process::Command;
@@ -36,20 +41,52 @@ impl Orchestrator {
     }
 
     /// Step 2: generate a key image via gflow-cli (`gflow image t2i <prompt>`).
-    fn generate_image(&self, plan: &str) -> Result<String, String> {
+    ///
+    /// gflow writes the generated image under `$GFLOW_CLI_OUTPUT_DIR` (or cwd) and prints
+    /// the written path on stdout. We capture stdout and trim it to the image path.
+    fn generate_image(&self, prompt: &str) -> Result<String, String> {
+        // Sanity-check that gflow is installed and authenticated before spending credits.
+        let auth = Command::new("gflow")
+            .args(["auth", "status"])
+            .output();
+
+        match auth {
+            Ok(out) if out.status.success() => {}
+            _ => {
+                return Err(
+                    "gflow not installed or not authenticated. Run 'gflow auth login' via headed Chromium (noVNC/VNC) first."
+                        .to_string(),
+                );
+            }
+        }
+
         let output = Command::new("gflow")
-            .args(["image", "t2i", plan])
+            .args(["image", "t2i", prompt])
             .output()
             .map_err(|e| format!("spawn gflow: {}", e))?;
 
         if !output.status.success() {
             return Err(format!(
-                "gflow failed: {}",
+                "gflow image t2i failed: {}",
                 String::from_utf8_lossy(&output.stderr)
             ));
         }
 
-        Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        // gflow prints the written image path; take the last non-empty line as the path.
+        let path = stdout
+            .lines()
+            .filter(|l| !l.is_empty())
+            .last()
+            .unwrap_or("")
+            .trim()
+            .to_string();
+
+        if path.is_empty() {
+            return Err("gflow produced no image path".to_string());
+        }
+
+        Ok(path)
     }
 
     /// Step 3: write a Hyperframes composition HTML referencing the generated image.
