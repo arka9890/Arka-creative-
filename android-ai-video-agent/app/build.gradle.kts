@@ -16,7 +16,7 @@ android {
     }
 
     signingConfigs {
-        release {
+        create("release") {
             storeFile = project.rootProject.file("release-keystore.jks")
             storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD") ?: ""
             keyAlias = System.getenv("ANDROID_KEY_ALIAS") ?: "aiagent"
@@ -26,9 +26,9 @@ android {
 
     buildTypes {
         release {
-            signingConfig signingConfigs.release
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+            signingConfig = signingConfigs.getByName("release")
+            minifyEnabled = false
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
 
