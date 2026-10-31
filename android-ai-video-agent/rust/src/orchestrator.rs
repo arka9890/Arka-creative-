@@ -138,4 +138,35 @@ mod tests {
         let o = Orchestrator::new(client);
         assert_eq!(o.client.model, "model-1");
     }
+
+    /// Task 7 integration test: edit_video produces HTML containing the plan text.
+    #[test]
+    fn edit_video_contains_plan_in_html() {
+        let client = crate::omniroute::OmnirouteClient::new(
+            "https://api.example.com".to_string(),
+            "sk-test".to_string(),
+            "model-1".to_string(),
+        );
+        let o = Orchestrator::new(client);
+        let result = o.edit_video("A cinematic sunrise over mountains").unwrap();
+        assert!(result.contains("A cinematic sunrise over mountains"));
+        assert!(result.contains("IMAGE_PLACEHOLDER"));
+        assert!(result.contains("data-composition-id=\"video\""));
+    }
+
+    /// Task 7 integration test: generate_image errors when gflow is not authenticated
+    /// (expected in CI where gflow-cli / headed Chromium are not installed).
+    #[test]
+    fn generate_image_errors_without_gflow() {
+        let client = crate::omniroute::OmnirouteClient::new(
+            "https://api.example.com".to_string(),
+            "sk-test".to_string(),
+            "model-1".to_string(),
+        );
+        let o = Orchestrator::new(client);
+        let result = o.generate_image("a test prompt");
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(err.contains("gflow") || err.contains("not installed") || err.contains("not authenticated"));
+    }
 }
