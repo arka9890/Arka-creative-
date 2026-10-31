@@ -3,9 +3,13 @@
 //! Generic chat-completion client for the Omniroute provider. Base URL, API key
 //! and model are configurable so the Android UI can point at any Omniroute
 //! deployment (set via the WebView config tab in Task 6).
+//!
+//! The HTTP call shells out to `curl` (already available on Android) rather than
+//! pulling a Rust TLS crate, which keeps the cdylib dependency surface small and
+//! avoids native-tls/rustls linking issues on the NDK toolchain.
 
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::process::Command;
 
 #[derive(Debug, Clone)]
 pub struct OmnirouteClient {
@@ -47,7 +51,8 @@ impl OmnirouteClient {
         }
     }
 
-    /// Send a chat-completion request to Omniroute and return the assistant's text.
+    /// Send a chat-completion request to Omniroute via `curl` and return the
+    /// assistant's text.
     pub fn chat_completion(&self, messages: Vec<ChatMessage>) -> Result<String, String> {
         let url = format!("{}/chat/completions", self.base_url.trim_end_matches('/'));
 
@@ -60,18 +65,29 @@ impl OmnirouteClient {
 
         let body = serde_json::to_string(&req).map_err(|e| format!("serialize request: {}", e))?;
 
-        let resp = ureq::post(&url)
-            .set("Content-Type", "application/json")
-            .set("Authorization", &format!("Bearer {}", self.api_key))
-            .send_string(&body)
-            .map_err(|e| format!("http request: {}", e))?;
+        // Build the curl command.
+        let mut cmd = Command::new("curl");
+        cmd.arg("-s")
+            .arg("-X")
+            .arg("POST")
+            .arg(url)
+            .arg("-H")
+            .arg(format!("Content-Type: application/json"))
+            .arg("-H")
+            .arg(format!("Authorization: Bearer {}", self.api_key))
+            .arg("-d")
+            .arg(&body);
 
-        let status = resp.status();
-        let text = resp.into_string().map_err(|e| format!("read response: {}", e))?;
+        let output = cmd.output().map_err(|e| format!("spawn curl: {}", e))?;
 
-        if !(200..300).contains(&status) {
-            return Err(format!("Omniroute HTTP {}: {}", status, text));
+        if !output.status.success() {
+            return Err(format!(
+                "curl failed: {}",
+                String::from_utf8_lossy(&output.stderr)
+            ));
         }
+
+        let text = String::from_utf8_lossy(&output.stdout).to_string();
 
         let parsed: ChatCompletionResponse =
             serde_json::from_str(&text).map_err(|e| format!("parse response: {}", e))?;
