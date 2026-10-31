@@ -29,5 +29,5 @@ pub extern "system" fn Java_com_example_aiagent_NativeLib_getVersion(
     env: JNIEnv<'_>,
     _class: JClass,
 ) -> jstring {
-    JString::new(env, VERSION).into_raw()
+    env.new_string(VERSION).expect("failed to create JNI string").into_raw()
 }
