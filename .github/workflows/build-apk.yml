@@ -21,11 +21,11 @@ jobs:
       - name: Accept Android SDK licenses
         run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
 
-      - name: Install Android NDK
-        run: $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "ndk;26.1.10909125"
-
-      - name: Set NDK env
-        run: echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/26.1.10909125" >> $GITHUB_ENV
+      - name: Set NDK env (use pre-installed NDK)
+        run: |
+          NDK_DIR=$(ls -d $ANDROID_HOME/ndk/*/ | head -1)
+          echo "ANDROID_NDK_HOME=$NDK_DIR" >> $GITHUB_ENV
+          echo "Using NDK: $NDK_DIR"
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
