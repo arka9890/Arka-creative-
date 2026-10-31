@@ -18,7 +18,7 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 /// Engine init entry point called from Kotlin (`NativeLib.init`).
 #[no_mangle]
 pub extern "system" fn Java_com_example_aiagent_NativeLib_init(
-    env: JNIEnv<'_>,
+    mut env: JNIEnv<'_>,
     _class: JClass,
 ) -> jint {
     // Engine singleton / runtime wiring happens here in later tasks.
@@ -28,7 +28,7 @@ pub extern "system" fn Java_com_example_aiagent_NativeLib_init(
 /// Crate version entry point called from Kotlin (`NativeLib.getVersion`).
 #[no_mangle]
 pub extern "system" fn Java_com_example_aiagent_NativeLib_getVersion(
-    env: JNIEnv<'_>,
+    mut env: JNIEnv<'_>,
     _class: JClass,
 ) -> jstring {
     env.new_string(VERSION).expect("failed to create JNI string").into_raw()
@@ -37,7 +37,7 @@ pub extern "system" fn Java_com_example_aiagent_NativeLib_getVersion(
 /// Configure Omniroute provider (base URL, API key, model).
 #[no_mangle]
 pub extern "system" fn Java_com_example_aiagent_NativeLib_configureOmniroute(
-    env: JNIEnv<'_>,
+    mut env: JNIEnv<'_>,
     _class: JClass,
     base_url: JString,
     api_key: JString,
@@ -56,7 +56,7 @@ pub extern "system" fn Java_com_example_aiagent_NativeLib_configureOmniroute(
 /// Plan a video from a user prompt via Omniroute LLM.
 #[no_mangle]
 pub extern "system" fn Java_com_example_aiagent_NativeLib_planVideo(
-    env: JNIEnv<'_>,
+    mut env: JNIEnv<'_>,
     _class: JClass,
     prompt: JString,
 ) -> jstring {
@@ -75,7 +75,7 @@ pub extern "system" fn Java_com_example_aiagent_NativeLib_planVideo(
 /// Generate a key image via gflow-cli (`gflow image t2i <prompt>`).
 #[no_mangle]
 pub extern "system" fn Java_com_example_aiagent_NativeLib_generateImage(
-    env: JNIEnv<'_>,
+    mut env: JNIEnv<'_>,
     _class: JClass,
     prompt: JString,
 ) -> jstring {
@@ -89,7 +89,7 @@ pub extern "system" fn Java_com_example_aiagent_NativeLib_generateImage(
 /// Edit/compose video via Hyperframes HTML composition.
 #[no_mangle]
 pub extern "system" fn Java_com_example_aiagent_NativeLib_editVideo(
-    env: JNIEnv<'_>,
+    mut env: JNIEnv<'_>,
     _class: JClass,
     plan: JString,
 ) -> jstring {
@@ -102,7 +102,7 @@ pub extern "system" fn Java_com_example_aiagent_NativeLib_editVideo(
 /// Render MP4 via Hyperframes (headless Chrome + FFmpeg).
 #[no_mangle]
 pub extern "system" fn Java_com_example_aiagent_NativeLib_renderVideo(
-    env: JNIEnv<'_>,
+    mut env: JNIEnv<'_>,
     _class: JClass,
     html: JString,
 ) -> jstring {
@@ -113,7 +113,7 @@ pub extern "system" fn Java_com_example_aiagent_NativeLib_renderVideo(
 /// End-to-end pipeline: plan → generate image → edit → render.
 #[no_mangle]
 pub extern "system" fn Java_com_example_aiagent_NativeLib_runPipeline(
-    env: JNIEnv<'_>,
+    mut env: JNIEnv<'_>,
     _class: JClass,
     prompt: JString,
 ) -> jstring {
