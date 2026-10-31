@@ -1,16 +1,18 @@
 package com.example.aiagent
 
 import android.content.Context
-import android.content.res.Configuration
-import android.content.res.Resources
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.View
+import android.webkit.JavascriptInterface
+import android.webkit.WebSettings
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
-import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
 
@@ -20,6 +22,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var inputModel: EditText
     private lateinit var textStatus: TextView
     private lateinit var textResult: TextView
+    private lateinit var webView: WebView
+
+    private val nativeLib = NativeLib()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,8 +39,9 @@ class MainActivity : AppCompatActivity() {
         inputModel = findViewById(R.id.input_model)
         textStatus = findViewById(R.id.text_status)
         textResult = findViewById(R.id.text_result)
+        webView = findViewById(R.id.webview_omniroute)
 
-        val nativeLib = NativeLib()
+        setupWebView()
 
         // Language switcher
         findViewById<Button>(R.id.btn_lang_en).setOnClickListener {
@@ -61,7 +67,7 @@ class MainActivity : AppCompatActivity() {
             recreate()
         }
 
-        // Save Omniroute config
+        // Save Omniroute config (native EditText path)
         findViewById<Button>(R.id.btn_save_config).setOnClickListener {
             val baseUrl = inputBaseUrl.text.toString()
             val apiKey = inputApiKey.text.toString()
@@ -70,9 +76,8 @@ class MainActivity : AppCompatActivity() {
                 showResult(getString(R.string.msg_enter_prompt))
                 return@setOnClickListener
             }
-            val result = nativeLib.configureOmniroute(baseUrl, apiKey, model)
-            showStatus(getString(R.string.status_done))
-            showResult(result ?: getString(R.string.msg_config_saved))
+            saveConfigAndApply(baseUrl, apiKey, model)
+            showResult(getString(R.string.msg_config_saved))
         }
 
         // Plan
@@ -141,14 +146,56 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun setupWebView() {
+        webView.settings.apply {
+            javaScriptEnabled = true
+            domStorageEnabled = true
+            cacheMode = WebSettings.LOAD_NO_CACHE
+        }
+        webView.webViewClient = WebViewClient()
+        webView.addJavascriptInterface(AndroidConfigInterface(this), "androidConfig")
+        webView.loadUrl("file:///android_asset/omniroute_config.html")
+    }
+
+    private fun saveConfigAndApply(baseUrl: String, apiKey: String, model: String) {
+        val prefs = getSharedPreferences("omniroute_config", Context.MODE_PRIVATE)
+        prefs.edit()
+            .putString("base_url", baseUrl)
+            .putString("api_key", apiKey)
+            .putString("model", model)
+            .apply()
+
+        // Push to native Rust engine via JNI
+        val result = nativeLib.configureOmniroute(baseUrl, apiKey, model)
+        showStatus(getString(R.string.status_done))
+        showResult(result ?: getString(R.string.msg_config_saved))
+    }
+
+    inner class AndroidConfigInterface(private val context: Context) {
+        @JavascriptInterface
+        fun saveConfig(baseUrl: String, apiKey: String, model: String) {
+            runOnUiThread {
+                saveConfigAndApply(baseUrl, apiKey, model)
+            }
+        }
+
+        @JavascriptInterface
+        fun getSavedConfig(): String? {
+            val prefs = context.getSharedPreferences("omniroute_config", Context.MODE_PRIVATE)
+            val baseUrl = prefs.getString("base_url", "")
+            val apiKey = prefs.getString("api_key", "")
+            val model = prefs.getString("model", "")
+            return """{"baseUrl":"$baseUrl","apiKey":"$apiKey","model":"$model"}"""
+        }
+    }
+
     private fun setLocale(lang: String) {
-        val locale = Locale(lang)
-        Locale.setDefault(locale)
-        val config = Resources.getSystem().configuration
+        val locale = java.util.Locale(lang)
+        java.util.Locale.setDefault(locale)
+        val config = android.content.res.Resources.getSystem().configuration
         config.setLocale(locale)
         val context = createConfigurationContext(config)
         context.resources.updateConfiguration(config, context.resources.displayMetrics)
-        // Persist choice for next launch
         val prefs = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
         prefs.edit().putString("lang", lang).apply()
     }
