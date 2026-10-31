@@ -5,6 +5,8 @@
 //! Android Kotlin UI drives over the JNI bridge.
 //!
 //! Task 1 scaffold + Task 2 agent host (Omniroute LLM client + orchestration).
+//! Task 3 gflow-cli image generation. Task 4 Hyperframes rendering.
+//! Task 7 end-to-end pipeline (run_pipeline) wired via JNI to Kotlin UI.
 
 mod omniroute;
 mod orchestrator;
