@@ -18,6 +18,7 @@ android {
     signingConfigs {
         create("release") {
             storeFile = project.rootProject.file("release-keystore.jks")
+            storeType = "PKCS12"
             storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD") ?: ""
             keyAlias = System.getenv("ANDROID_KEY_ALIAS") ?: "aiagent"
             keyPassword = System.getenv("ANDROID_KEY_PASSWORD") ?: ""
