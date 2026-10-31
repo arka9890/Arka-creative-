@@ -2,12 +2,12 @@
 <resources>
     <!-- Light theme (parent) -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        <item name="colorPrimary">#6D4C41</style>
-        <item name="colorPrimaryDark">#4E342E</style>
-        <item name="colorAccent">#8D6E63</style>
-        <item name="android:windowBackground">@color/bg_light</style>
-        <item name="android:textColorPrimary">@color/text_light_primary</style>
-        <item name="android:textColorSecondary">@color/text_light_secondary</style>
+        <item name="colorPrimary">#6D4C41</item>
+        <item name="colorPrimaryDark">#4E342E</item>
+        <item name="colorAccent">#8D6E63</item>
+        <item name="android:windowBackground">@color/bg_light</item>
+        <item name="android:textColorPrimary">@color/text_light_primary</item>
+        <item name="android:textColorSecondary">@color/text_light_secondary</item>
     </style>
 
     <style name="SkeuomorphicButton" parent="Widget.AppCompat.Button">
