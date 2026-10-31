@@ -89,7 +89,7 @@ impl Orchestrator {
     }
 
     /// Step 3: write a Hyperframes composition HTML referencing the generated image.
-    fn edit_video(&self, plan: &str, image_path: &str) -> Result<String, String> {
+    pub fn edit_video(&self, plan: &str, image_path: &str) -> Result<String, String> {
         let html = format!(
             r#"<div id="stage" data-composition-id="video" data-start="0" data-width="1920" data-height="1080">
   <img class="clip" data-start="0" data-duration="6" data-track-index="0" src="{}" />
@@ -104,7 +104,7 @@ impl Orchestrator {
     }
 
     /// Step 4: render MP4 via Hyperframes (headless Chrome + FFmpeg).
-    fn render_video(&self, html_path: &str) -> Result<String, String> {
+    pub fn render_video(&self, html_path: &str) -> Result<String, String> {
         let output = Command::new("npx")
             .args(["hyperframes", "render", html_path, "-o", "/tmp/output.mp4"])
             .output()
