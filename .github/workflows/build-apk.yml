@@ -38,7 +38,7 @@ jobs:
       - name: Build Rust native (cargo-ndk)
         working-directory: android-ai-video-agent/rust
         run: |
-          cargo ndk -t arm64-v8a --android-platform 35 -o ../app/src/main/jniLibs/arm64-v8a build --release
+          cargo ndk -t arm64-v8a -o ../app/src/main/jniLibs/arm64-v8a build --release
 
       - name: Build APK
         working-directory: android-ai-video-agent
