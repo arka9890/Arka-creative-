@@ -80,10 +80,16 @@ pub extern "system" fn Java_com_example_aiagent_NativeLib_generateImage(
     prompt: JString,
 ) -> jstring {
     let prompt_str: String = env.get_string(&prompt).expect("prompt").into();
-    let _ = prompt_str;
-    env.new_string("image_path_placeholder.png")
-        .expect("path")
-        .into_raw()
+    let client = omniroute::OmnirouteClient::new(
+        "https://api.omniroute.example.com".to_string(),
+        "".to_string(),
+        "default".to_string(),
+    );
+    let orchestrator = orchestrator::Orchestrator::new(client);
+    match orchestrator.generate_image(&prompt_str) {
+        Ok(path) => env.new_string(&path).expect("image path").into_raw(),
+        Err(e) => env.new_string(&format!("ERROR: {}", e)).expect("error").into_raw(),
+    }
 }
 
 /// Edit/compose video via Hyperframes HTML composition.
