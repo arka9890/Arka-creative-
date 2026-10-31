@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Outer bevel (light highlight on top & left) -->
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="12dp"/>
+            <gradient
+                android:startColor="#FFFFFF"
+                android:endColor="#E0E0E0"
+                android:angle="270"/>
+            <padding android:left="2dp" android:top="2dp" android:right="2dp" android:bottom="2dp"/>
+        </shape>
+    </item>
+    <!-- Inner shadow (dark on bottom & right) + button face -->
+    <item android:left="1dp" android:top="1dp" android:right="3dp" android:bottom="3dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="10dp"/>
+            <gradient
+                android:startColor="#C8AFA4"
+                android:endColor="#A1887F"
+                android:angle="270"/>
+            <padding android:left="8dp" android:top="8dp" android:right="8dp" android:bottom="8dp"/>
+        </shape>
+    </item>
+</layer-list>
