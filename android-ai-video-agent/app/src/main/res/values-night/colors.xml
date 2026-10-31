@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark theme colors -->
+    <color name="bg_light">#262320</color>
+    <color name="text_light_primary">#D7CCC8</color>
+    <color name="text_light_secondary">#A1887F</color>
+    <color name="btn_text_light">#D7CCC8</color>
+
+    <color name="bg_dark">#1A1715</color>
+    <color name="text_dark_primary">#EFEBE9</color>
+    <color name="text_dark_secondary">#BCAAA4</color>
+    <color name="btn_text_dark">#EFEBE9</color>
+
+    <color name="color_primary">#8D6E63</color>
+    <color name="color_primary_dark">#5D4037</color>
+    <color name="color_accent">#A1887F</color>
+</resources>
