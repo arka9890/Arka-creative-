@@ -1,7 +1,6 @@
 package com.example.aiagent
 
 import android.content.Context
-import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.View
 import android.webkit.JavascriptInterface
@@ -43,6 +42,11 @@ class MainActivity : AppCompatActivity() {
 
         setupWebView()
 
+        if (!nativeLib.isLoaded) {
+            showStatus("Native library not loaded")
+            showResult("Warning: Rust native engine could not be loaded. JNI calls will fail.")
+        }
+
         // Language switcher
         findViewById<Button>(R.id.btn_lang_en).setOnClickListener {
             setLocale("en")
@@ -56,13 +60,13 @@ class MainActivity : AppCompatActivity() {
         // Theme switcher
         findViewById<Button>(R.id.btn_theme_light).setOnClickListener {
             AppCompatDelegate.setDefaultNightMode(
-                androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO
+                AppCompatDelegate.MODE_NIGHT_NO
             )
             recreate()
         }
         findViewById<Button>(R.id.btn_theme_dark).setOnClickListener {
             AppCompatDelegate.setDefaultNightMode(
-                androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
+                AppCompatDelegate.MODE_NIGHT_YES
             )
             recreate()
         }
@@ -76,6 +80,10 @@ class MainActivity : AppCompatActivity() {
                 showResult(getString(R.string.msg_enter_prompt))
                 return@setOnClickListener
             }
+            if (!nativeLib.isLoaded) {
+                showResult("Native lib not loaded — cannot configure")
+                return@setOnClickListener
+            }
             saveConfigAndApply(baseUrl, apiKey, model)
             showResult(getString(R.string.msg_config_saved))
         }
@@ -85,6 +93,10 @@ class MainActivity : AppCompatActivity() {
             val prompt = inputPrompt.text.toString()
             if (prompt.isBlank()) {
                 showResult(getString(R.string.msg_enter_prompt))
+                return@setOnClickListener
+            }
+            if (!nativeLib.isLoaded) {
+                showResult("Native lib not loaded")
                 return@setOnClickListener
             }
             showStatus(getString(R.string.status_planning))
@@ -100,6 +112,10 @@ class MainActivity : AppCompatActivity() {
                 showResult(getString(R.string.msg_enter_prompt))
                 return@setOnClickListener
             }
+            if (!nativeLib.isLoaded) {
+                showResult("Native lib not loaded")
+                return@setOnClickListener
+            }
             showStatus(getString(R.string.status_generating))
             val result = nativeLib.generateImage(prompt)
             showStatus(getString(R.string.status_done))
@@ -111,6 +127,10 @@ class MainActivity : AppCompatActivity() {
             val prompt = inputPrompt.text.toString()
             if (prompt.isBlank()) {
                 showResult(getString(R.string.msg_enter_prompt))
+                return@setOnClickListener
+            }
+            if (!nativeLib.isLoaded) {
+                showResult("Native lib not loaded")
                 return@setOnClickListener
             }
             showStatus(getString(R.string.status_editing))
@@ -126,6 +146,10 @@ class MainActivity : AppCompatActivity() {
                 showResult(getString(R.string.msg_enter_prompt))
                 return@setOnClickListener
             }
+            if (!nativeLib.isLoaded) {
+                showResult("Native lib not loaded")
+                return@setOnClickListener
+            }
             showStatus(getString(R.string.status_rendering))
             val result = nativeLib.renderVideo(html)
             showStatus(getString(R.string.status_done))
@@ -137,6 +161,10 @@ class MainActivity : AppCompatActivity() {
             val prompt = inputPrompt.text.toString()
             if (prompt.isBlank()) {
                 showResult(getString(R.string.msg_enter_prompt))
+                return@setOnClickListener
+            }
+            if (!nativeLib.isLoaded) {
+                showResult("Native lib not loaded")
                 return@setOnClickListener
             }
             showStatus(getString(R.string.status_planning))
