@@ -11,12 +11,12 @@
     </style>
 
     <style name="SkeuomorphicButton" parent="Widget.AppCompat.Button">
-        <item name="android:background">@drawable/skeuomorphic_button</style>
-        <item name="android:textColor">@color/btn_text_light</style>
-        <item name="android:textStyle">bold</style>
-        <item name="android:textSize">14sp</style>
-        <item name="android:padding">12dp</style>
-        <item name="android:layout_margin">8dp</style>
+        <item name="android:background">@drawable/skeuomorphic_button</item>
+        <item name="android:textColor">@color/btn_text_light</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:padding">12dp</item>
+        <item name="android:layout_margin">8dp</item>
     </style>
 
     <style name="SkeuomorphicCard">
