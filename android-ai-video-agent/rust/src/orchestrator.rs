@@ -32,7 +32,6 @@ impl Orchestrator {
         Ok(mp4_path)
     }
 
-    /// Step 1: ask Omniroute to turn the user prompt into a video plan.
     fn plan(&self, prompt: &str) -> Result<String, String> {
         self.client.complete(
             "You are a video production planner. Given a user prompt, produce a concise video plan (scenes, shots, visual style) as plain text.",
@@ -44,7 +43,7 @@ impl Orchestrator {
     ///
     /// gflow writes the generated image under `$GFLOW_CLI_OUTPUT_DIR` (or cwd) and prints
     /// the written path on stdout. We capture stdout and trim it to the image path.
-    fn generate_image(&self, prompt: &str) -> Result<String, String> {
+    pub fn generate_image(&self, prompt: &str) -> Result<String, String> {
         // Sanity-check that gflow is installed and authenticated before spending credits.
         let auth = Command::new("gflow")
             .args(["auth", "status"])
