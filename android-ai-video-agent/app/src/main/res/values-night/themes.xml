@@ -2,12 +2,12 @@
 <resources>
     <!-- Dark theme overrides -->
     <style name="AppTheme" parent="Theme.AppCompat">
-        <item name="colorPrimary">#8D6E63</style>
-        <item name="colorPrimaryDark">#5D4037</style>
-        <item name="colorAccent">#A1887F</style>
-        <item name="android:windowBackground">@color/bg_dark</style>
-        <item name="android:textColorPrimary">@color/text_dark_primary</style>
-        <item name="android:textColorSecondary">@color/text_dark_secondary</style>
+        <item name="colorPrimary">#8D6E63</item>
+        <item name="colorPrimaryDark">#5D4037</item>
+        <item name="colorAccent">#A1887F</item>
+        <item name="android:windowBackground">@color/bg_dark</item>
+        <item name="android:textColorPrimary">@color/text_dark_primary</item>
+        <item name="android:textColorSecondary">@color/text_dark_secondary</item>
     </style>
 
     <style name="SkeuomorphicButton" parent="Widget.AppCompat.Button">
