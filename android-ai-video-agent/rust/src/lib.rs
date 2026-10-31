@@ -43,9 +43,9 @@ pub extern "system" fn Java_com_example_aiagent_NativeLib_configureOmniroute(
     api_key: JString,
     model: JString,
 ) -> jstring {
-    let base_url: String = env.get_string(base_url).expect("base_url").into();
-    let api_key: String = env.get_string(api_key).expect("api_key").into();
-    let model: String = env.get_string(model).expect("model").into();
+    let base_url: String = env.get_string(&base_url).expect("base_url").into();
+    let api_key: String = env.get_string(&api_key).expect("api_key").into();
+    let model: String = env.get_string(&model).expect("model").into();
 
     let _client = omniroute::OmnirouteClient::new(base_url, api_key, model);
     env.new_string("ok")
@@ -60,7 +60,7 @@ pub extern "system" fn Java_com_example_aiagent_NativeLib_planVideo(
     _class: JClass,
     prompt: JString,
 ) -> jstring {
-    let prompt_str: String = env.get_string(prompt).expect("prompt").into();
+    let prompt_str: String = env.get_string(&prompt).expect("prompt").into();
     let client = omniroute::OmnirouteClient::new(
         "https://api.omniroute.example.com".to_string(),
         "".to_string(),
@@ -79,7 +79,7 @@ pub extern "system" fn Java_com_example_aiagent_NativeLib_generateImage(
     _class: JClass,
     prompt: JString,
 ) -> jstring {
-    let prompt_str: String = env.get_string(prompt).expect("prompt").into();
+    let prompt_str: String = env.get_string(&prompt).expect("prompt").into();
     let _ = prompt_str;
     env.new_string("image_path_placeholder.png")
         .expect("path")
@@ -93,7 +93,7 @@ pub extern "system" fn Java_com_example_aiagent_NativeLib_editVideo(
     _class: JClass,
     plan: JString,
 ) -> jstring {
-    let _plan: String = env.get_string(plan).expect("plan").into();
+    let _plan: String = env.get_string(&plan).expect("plan").into();
     env.new_string("/tmp/video.html")
         .expect("html")
         .into_raw()
@@ -106,7 +106,7 @@ pub extern "system" fn Java_com_example_aiagent_NativeLib_renderVideo(
     _class: JClass,
     html: JString,
 ) -> jstring {
-    let _html: String = env.get_string(html).expect("html").into();
+    let _html: String = env.get_string(&html).expect("html").into();
     env.new_string("/tmp/output.mp4").expect("mp4").into_raw()
 }
 
@@ -117,7 +117,7 @@ pub extern "system" fn Java_com_example_aiagent_NativeLib_runPipeline(
     _class: JClass,
     prompt: JString,
 ) -> jstring {
-    let prompt_str: String = env.get_string(prompt).expect("prompt").into();
+    let prompt_str: String = env.get_string(&prompt).expect("prompt").into();
     let client = omniroute::OmnirouteClient::new(
         "https://api.omniroute.example.com".to_string(),
         "".to_string(),
