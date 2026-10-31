@@ -27,7 +27,7 @@ impl Orchestrator {
     pub fn run_pipeline(&self, prompt: &str) -> Result<String, String> {
         let plan = self.plan(prompt)?;
         let image_path = self.generate_image(&plan)?;
-        let html_path = self.edit_video(&plan, &image_path)?;
+        let html_path = self.edit_video(&plan)?;
         let mp4_path = self.render_video(&html_path)?;
         Ok(mp4_path)
     }
@@ -89,12 +89,15 @@ impl Orchestrator {
     }
 
     /// Step 3: write a Hyperframes composition HTML referencing the generated image.
-    pub fn edit_video(&self, plan: &str, image_path: &str) -> Result<String, String> {
+    /// `plan` is the Omniroute plan text; image src uses a placeholder that the
+    /// end-to-end pipeline replaces with the real generated image path.
+    pub fn edit_video(&self, plan: &str) -> Result<String, String> {
         let html = format!(
             r#"<div id="stage" data-composition-id="video" data-start="0" data-width="1920" data-height="1080">
-  <img class="clip" data-start="0" data-duration="6" data-track-index="0" src="{}" />
+  <!-- plan: {} -->
+  <img class="clip" data-start="0" data-duration="6" data-track-index="0" src="IMAGE_PLACEHOLDER" />
 </div>"#,
-            image_path
+            plan
         );
 
         let html_path = "/tmp/video.html";
