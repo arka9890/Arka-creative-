@@ -7,11 +7,23 @@ package com.example.aiagent
  * `libai_agent.so` for Android; the Gradle build wiring places it in the app's nativeLibraryDir
  * and `System.loadLibrary` binds it here. Engine capabilities (agent host: generate → edit →
  * render orchestration) are exposed as native methods from the Rust crate (see `rust/`).
+ *
+ * If the native library is missing (e.g. unsupported ABI or build issue), the app still
+ * launches and shows an error message instead of force-closing.
  */
 class NativeLib {
+    private var loaded: Boolean = false
+
     init {
-        System.loadLibrary("ai_agent")
+        try {
+            System.loadLibrary("ai_agent")
+            loaded = true
+        } catch (e: UnsatisfiedLinkError) {
+            loaded = false
+        }
     }
+
+    val isLoaded: Boolean get() = loaded
 
     external fun init(): Int
 
@@ -34,4 +46,11 @@ class NativeLib {
 
     /// End-to-end pipeline: plan → generate image → edit → render.
     external fun runPipeline(prompt: String): String?
+
+    fun safeInit(): String =
+        if (loaded) "native lib loaded" else "native lib NOT loaded (UnsupportedLinkError)"
+
+    fun safeGetVersion(): String =
+        if (loaded) try { getVersion() ?: "unknown" } catch (e: UnsatisfiedLinkError) { "native lib not loaded" }
+        else "native lib not loaded"
 }
