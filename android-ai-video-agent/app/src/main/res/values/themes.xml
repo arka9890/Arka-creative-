@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Light theme (parent) -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="colorPrimary">#6D4C41</style>
+        <item name="colorPrimaryDark">#4E342E</style>
+        <item name="colorAccent">#8D6E63</style>
+        <item name="android:windowBackground">@color/bg_light</style>
+        <item name="android:textColorPrimary">@color/text_light_primary</style>
+        <item name="android:textColorSecondary">@color/text_light_secondary</style>
+    </style>
+
+    <style name="SkeuomorphicButton" parent="Widget.AppCompat.Button">
+        <item name="android:background">@drawable/skeuomorphic_button</style>
+        <item name="android:textColor">@color/btn_text_light</style>
+        <item name="android:textStyle">bold</style>
+        <item name="android:textSize">14sp</style>
+        <item name="android:padding">12dp</style>
+        <item name="android:layout_margin">8dp</style>
+    </style>
+
+    <style name="SkeuomorphicCard">
+        <item name="android:background">@drawable/skeuomorphic_card</style>
+        <item name="android:padding">16dp</style>
+        <item name="android:layout_margin">12dp</style>
+    </style>
+</resources>
