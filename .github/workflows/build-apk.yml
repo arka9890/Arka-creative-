@@ -19,10 +19,12 @@ jobs:
           java-version: 17
 
       - name: Accept Android SDK licenses
-        run: yes | sdkmanager --licenses
+        run: |
+          yes | /usr/local/lib/android/sdk/cmdline-tools/16.0/bin/sdkmanager --licenses || true
+          echo "License acceptance done"
 
       - name: Install Android NDK
-        run: sdkmanager "ndk;26.1.10909125"
+        run: /usr/local/lib/android/sdk/cmdline-tools/16.0/bin/sdkmanager "ndk;26.1.10909125"
 
       - name: Set NDK env
         run: echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/26.1.10909125" >> $GITHUB_ENV
