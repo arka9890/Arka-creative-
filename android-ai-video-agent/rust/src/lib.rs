@@ -99,10 +99,17 @@ pub extern "system" fn Java_com_example_aiagent_NativeLib_editVideo(
     _class: JClass,
     plan: JString,
 ) -> jstring {
-    let _plan: String = env.get_string(&plan).expect("plan").into();
-    env.new_string("/tmp/video.html")
-        .expect("html")
-        .into_raw()
+    let plan_str: String = env.get_string(&plan).expect("plan").into();
+    let client = omniroute::OmnirouteClient::new(
+        "https://api.omniroute.example.com".to_string(),
+        "".to_string(),
+        "default".to_string(),
+    );
+    let orchestrator = orchestrator::Orchestrator::new(client);
+    match orchestrator.edit_video(&plan_str) {
+        Ok(path) => env.new_string(&path).expect("html path").into_raw(),
+        Err(e) => env.new_string(&format!("ERROR: {}", e)).expect("error").into_raw(),
+    }
 }
 
 /// Render MP4 via Hyperframes (headless Chrome + FFmpeg).
@@ -112,8 +119,17 @@ pub extern "system" fn Java_com_example_aiagent_NativeLib_renderVideo(
     _class: JClass,
     html: JString,
 ) -> jstring {
-    let _html: String = env.get_string(&html).expect("html").into();
-    env.new_string("/tmp/output.mp4").expect("mp4").into_raw()
+    let html_str: String = env.get_string(&html).expect("html").into();
+    let client = omniroute::OmnirouteClient::new(
+        "https://api.omniroute.example.com".to_string(),
+        "".to_string(),
+        "default".to_string(),
+    );
+    let orchestrator = orchestrator::Orchestrator::new(client);
+    match orchestrator.render_video(&html_str) {
+        Ok(path) => env.new_string(&path).expect("mp4 path").into_raw(),
+        Err(e) => env.new_string(&format!("ERROR: {}", e)).expect("error").into_raw(),
+    }
 }
 
 /// End-to-end pipeline: plan → generate image → edit → render.
