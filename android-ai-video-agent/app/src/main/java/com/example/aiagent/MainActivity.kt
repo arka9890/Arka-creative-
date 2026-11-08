@@ -48,6 +48,18 @@ class MainActivity : AppCompatActivity() {
             if (!nativeLib.isLoaded) {
                 showStatus("Native library not loaded")
                 showResult("Warning: Rust native library could not be loaded. JNI calls will fail.")
+            } else {
+                runCatching {
+                    showStatus(nativeLib.getProotStatus() ?: "proot status unknown")
+                }
+                val currentVersion = try { packageManager.getPackageInfo(packageName, 0).versionName } catch (_: Exception) { null }
+                Updater.checkLatest(this) { tag, url ->
+                    runOnUiThread {
+                        if (tag != null && currentVersion != null && tag != "v$currentVersion") {
+                            showResult("Update tersedia: $tag${if (url != null) "\n$url" else ""}")
+                        }
+                    }
+                }
             }
 
             // Language switcher
@@ -170,8 +182,13 @@ class MainActivity : AppCompatActivity() {
                     showResult("Native lib not loaded")
                     return@setOnClickListener
                 }
+                RenderService.start(this)
                 showStatus(getString(R.string.status_planning))
-                val result = nativeLib.runPipeline(prompt)
+                val result = try {
+                    nativeLib.runPipeline(prompt)
+                } finally {
+                    RenderService.stop(this)
+                }
                 showStatus(getString(R.string.status_done))
                 showResult(getString(R.string.msg_pipeline_complete, result ?: ""))
             }

@@ -1,0 +1,7 @@
+rust/target/
+rust/Cargo.lock
+app/src/main/jniLibs/
+.gradle/
+local.properties
+*.keystore
+*.apk

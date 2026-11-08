@@ -1,4 +1,4 @@
-//! Pipeline orchestration: LLM plan → gflow-cli generate → Hyperframes edit → render.
+//! Pipeline orchestration: LLM plan → gflow-cli generate → Remotion edit → render.
 //!
 //! gflow-cli drives Google Flow (Veo/Imagen) through a **headed Chromium** (Playwright
 //! persistent profile). Google auth + reCAPTCHA require a headed browser, so the browser
@@ -6,7 +6,7 @@
 //! must be installed in the proot+Alpine Linux environment on Android.
 
 use crate::omniroute::OmnirouteClient;
-use std::process::Command;
+use crate::proot::ProotRuntime;
 
 pub struct Orchestrator {
     pub client: OmnirouteClient,
@@ -22,12 +22,17 @@ impl Orchestrator {
     /// Steps:
     ///   1. Plan with Omniroute LLM (scene breakdown, visual style).
     ///   2. Generate key image via gflow-cli (`gflow image t2i`).
-    ///   3. Compose/edit via Hyperframes HTML composition.
-    ///   4. Render MP4 via Hyperframes (headless Chrome + FFmpeg).
+    ///   3. Compose/edit via Remotion HTML composition.
+    ///   4. Render MP4 via Remotion (headless Chrome + FFmpeg).
     pub fn run_pipeline(&self, prompt: &str) -> Result<String, String> {
         let plan = self.plan(prompt)?;
         let image_path = self.generate_image(&plan)?;
         let html_path = self.edit_video(&plan)?;
+        // Wire the generated image into the Remotion/HTML composition.
+        if let Ok(html) = std::fs::read_to_string(&html_path) {
+            let updated = html.replace("IMAGE_PLACEHOLDER", &image_path);
+            let _ = std::fs::write(&html_path, updated);
+        }
         let mp4_path = self.render_video(&html_path)?;
         Ok(mp4_path)
     }
@@ -44,9 +49,11 @@ impl Orchestrator {
     /// gflow writes the generated image under `$GFLOW_CLI_OUTPUT_DIR` (or cwd) and prints
     /// the written path on stdout. We capture stdout and trim it to the image path.
     pub fn generate_image(&self, prompt: &str) -> Result<String, String> {
+        let runtime = ProotRuntime::from_env();
+
         // Sanity-check that gflow is installed and authenticated before spending credits.
-        let auth = Command::new("gflow")
-            .args(["auth", "status"])
+        let auth = runtime
+            .command("gflow", &["auth", "status"])
             .output();
 
         match auth {
@@ -59,8 +66,8 @@ impl Orchestrator {
             }
         }
 
-        let output = Command::new("gflow")
-            .args(["image", "t2i", prompt])
+        let output = runtime
+            .command("gflow", &["image", "t2i", prompt])
             .output()
             .map_err(|e| format!("spawn gflow: {}", e))?;
 
@@ -88,7 +95,7 @@ impl Orchestrator {
         Ok(path)
     }
 
-    /// Step 3: write a Hyperframes composition HTML referencing the generated image.
+    /// Step 3: write a Remotion composition HTML referencing the generated image.
     /// `plan` is the Omniroute plan text; image src uses a placeholder that the
     /// end-to-end pipeline replaces with the real generated image path.
     pub fn edit_video(&self, plan: &str) -> Result<String, String> {
@@ -106,16 +113,17 @@ impl Orchestrator {
         Ok(html_path.to_string())
     }
 
-    /// Step 4: render MP4 via Hyperframes (headless Chrome + FFmpeg).
+    /// Step 4: render MP4 via Remotion (headless Chrome + FFmpeg).
     pub fn render_video(&self, html_path: &str) -> Result<String, String> {
-        let output = Command::new("npx")
-            .args(["hyperframes", "render", html_path, "-o", "/tmp/output.mp4"])
+        let runtime = ProotRuntime::from_env();
+        let output = runtime
+            .command("npx", &["remotion", "render", html_path, "MyVideo", "/tmp/output.mp4"])
             .output()
-            .map_err(|e| format!("spawn hyperframes: {}", e))?;
+            .map_err(|e| format!("spawn remotion: {}", e))?;
 
         if !output.status.success() {
             return Err(format!(
-                "hyperframes render failed: {}",
+                "remotion render failed: {}",
                 String::from_utf8_lossy(&output.stderr)
             ));
         }
@@ -149,9 +157,10 @@ mod tests {
         );
         let o = Orchestrator::new(client);
         let result = o.edit_video("A cinematic sunrise over mountains").unwrap();
-        assert!(result.contains("A cinematic sunrise over mountains"));
-        assert!(result.contains("IMAGE_PLACEHOLDER"));
-        assert!(result.contains("data-composition-id=\"video\""));
+        let html = std::fs::read_to_string(&result).unwrap();
+        assert!(html.contains("A cinematic sunrise over mountains"));
+        assert!(html.contains("IMAGE_PLACEHOLDER"));
+        assert!(html.contains("data-composition-id=\"video\""));
     }
 
     /// Task 7 integration test: generate_image errors when gflow is not authenticated

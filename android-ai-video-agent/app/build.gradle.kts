@@ -11,17 +11,17 @@ android {
         applicationId = "com.example.aiagent"
         minSdk = 26
         targetSdk = 35
-        versionCode = 2
-        versionName = "0.1.1"
+        versionCode = 3
+        versionName = "0.1.2"
     }
 
     signingConfigs {
         create("release") {
-            storeFile = project.rootProject.file("release-keystore.jks")
+            storeFile = project.rootProject.file(System.getenv("KEYSTORE_PATH") ?: "release-keystore.jks")
             storeType = "PKCS12"
-            storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD") ?: ""
-            keyAlias = System.getenv("ANDROID_KEY_ALIAS") ?: "aiagent"
-            keyPassword = System.getenv("ANDROID_KEY_PASSWORD") ?: ""
+            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: (System.getenv("ANDROID_KEYSTORE_PASSWORD") ?: "")
+            keyAlias = System.getenv("KEY_ALIAS") ?: (System.getenv("ANDROID_KEY_ALIAS") ?: "aiagent")
+            keyPassword = System.getenv("KEY_PASSWORD") ?: (System.getenv("ANDROID_KEY_PASSWORD") ?: "")
         }
     }
 

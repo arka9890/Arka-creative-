@@ -38,14 +38,18 @@ class NativeLib {
     /// Generate a key image via gflow-cli.
     external fun generateImage(prompt: String): String?
 
-    /// Edit/compose video via Hyperframes HTML composition.
+    /// Edit/compose video via Remotion HTML composition.
     external fun editVideo(plan: String): String?
 
-    /// Render MP4 via Hyperframes (headless Chrome + FFmpeg).
+    /// Render MP4 via Remotion (headless Chrome + FFmpeg).
     external fun renderVideo(html: String): String?
 
     /// End-to-end pipeline: plan → generate image → edit → render.
     external fun runPipeline(prompt: String): String?
+
+    /// report proot+alpine status
+    external fun getProotStatus(): String?
+
 
     fun safeInit(): String =
         if (loaded) "native lib loaded" else "native lib NOT loaded (UnsupportedLinkError)"

@@ -1,16 +1,18 @@
 //! AI Video Agent — Rust native engine (JNI cdylib).
 //!
 //! Hosts the AI agent orchestration loop (LLM via Omniroute → image generation via
-//! gflow-cli → edit via Hyperframes → render via headless Chrome + FFmpeg) that the
+//! gflow-cli → edit via Remotion → render via headless Chrome + FFmpeg) that the
 //! Android Kotlin UI drives over the JNI bridge.
 //!
 //! Task 1 scaffold + Task 2 agent host (Omniroute LLM client + orchestration).
-//! Task 3 gflow-cli image generation. Task 4 Hyperframes rendering.
+//! Task 3 gflow-cli image generation. Task 4 Remotion rendering.
 //! Task 7 end-to-end pipeline (run_pipeline) wired via JNI to Kotlin UI.
 
 mod omniroute;
 mod orchestrator;
+mod proot;
 
+use crate::proot::ProotRuntime;
 use jni::objects::{JClass, JString};
 use jni::sys::{jint, jstring};
 use jni::JNIEnv;
@@ -94,7 +96,7 @@ pub extern "system" fn Java_com_example_aiagent_NativeLib_generateImage(
     }
 }
 
-/// Edit/compose video via Hyperframes HTML composition.
+/// Edit/compose video via Remotion HTML composition.
 #[no_mangle]
 pub extern "system" fn Java_com_example_aiagent_NativeLib_editVideo(
     mut env: JNIEnv<'_>,
@@ -114,7 +116,7 @@ pub extern "system" fn Java_com_example_aiagent_NativeLib_editVideo(
     }
 }
 
-/// Render MP4 via Hyperframes (headless Chrome + FFmpeg).
+/// Render MP4 via Remotion (headless Chrome + FFmpeg).
 #[no_mangle]
 pub extern "system" fn Java_com_example_aiagent_NativeLib_renderVideo(
     mut env: JNIEnv<'_>,
@@ -152,4 +154,16 @@ pub extern "system" fn Java_com_example_aiagent_NativeLib_runPipeline(
         Ok(path) => env.new_string(&path).expect("pipeline result").into_raw(),
         Err(e) => env.new_string(&format!("ERROR: {}", e)).expect("error").into_raw(),
     }
+}
+
+/// Report availability of the proot + Alpine sidecar runtime.
+#[no_mangle]
+pub extern "system" fn Java_com_example_aiagent_NativeLib_getProotStatus(
+    env: JNIEnv<'_>,
+    _class: JClass,
+) -> jstring {
+    let rt = ProotRuntime::from_env();
+    env.new_string(rt.describe())
+        .expect("proot status")
+        .into_raw()
 }
