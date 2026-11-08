@@ -200,13 +200,14 @@ fun ChatBubble(msg: ChatMessage) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConfigScreen(activity: Activity) {
-    var baseUrl by remember { mutableStateOf("https://api.omniroute.example.com") }
-    var apiKey by remember { mutableStateOf("") }
-    var model by remember { mutableStateOf("default") }
+    val prefs = activity.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+    var baseUrl by remember { mutableStateOf(prefs.getString("baseUrl", "https://api.omniroute.example.com") ?: "https://api.omniroute.example.com") }
+    var apiKey by remember { mutableStateOf(prefs.getString("apiKey", "") ?: "") }
+    var model by remember { mutableStateOf(prefs.getString("model", "default") ?: "default") }
     var result by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
     val providers = listOf("OpenAI", "Anthropic", "Gemini", "OpenRouter", "Custom")
-    var provider by remember { mutableStateOf(getSharedPreferences("app_prefs", Context.MODE_PRIVATE).getString("provider", providers.first()) ?: providers.first()) }
+    var provider by remember { mutableStateOf(prefs.getString("provider", providers.first()) ?: providers.first()) }
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text("Konfigurasi", style = ClayTypography.headlineMedium, color = ClayColors.TextPrimary)
         ClayCard {
