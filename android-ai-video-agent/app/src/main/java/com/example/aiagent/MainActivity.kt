@@ -1,269 +1,149 @@
 package com.example.aiagent
 
-import android.content.Context
-import android.content.res.Resources
 import android.os.Bundle
-import android.util.Log
-import android.view.View
-import android.webkit.JavascriptInterface
-import android.webkit.WebSettings
-import android.webkit.WebView
-import android.webkit.WebViewClient
-import android.widget.Button
-import android.widget.EditText
-import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AppCompatDelegate
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import com.example.aiagent.ui.theme.ClayColors
+import com.example.aiagent.ui.theme.ClayTheme
+import com.example.aiagent.ui.theme.ClayTypography
 
-class MainActivity : AppCompatActivity() {
-
-    private var inputPrompt: EditText? = null
-    private var inputBaseUrl: EditText? = null
-    private var inputApiKey: EditText? = null
-    private var inputModel: EditText? = null
-    private var textStatus: TextView? = null
-    private var textResult: TextView? = null
-    private var webView: WebView? = null
-
+class MainActivity : ComponentActivity() {
     private val nativeLib = NativeLib()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        try {
-            setContentView(R.layout.activity_main)
-
-            val toolbar = findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar)
-            setSupportActionBar(toolbar)
-
-            inputPrompt = findViewById(R.id.input_prompt)
-            inputBaseUrl = findViewById(R.id.input_base_url)
-            inputApiKey = findViewById(R.id.input_api_key)
-            inputModel = findViewById(R.id.input_model)
-            textStatus = findViewById(R.id.text_status)
-            textResult = findViewById(R.id.text_result)
-            webView = findViewById(R.id.webview_omniroute)
-
-            setupWebView()
-
-            if (!nativeLib.isLoaded) {
-                showStatus("Native library not loaded")
-                showResult("Warning: Rust native library could not be loaded. JNI calls will fail.")
-            } else {
-                runCatching {
-                    showStatus(nativeLib.getProotStatus() ?: "proot status unknown")
-                }
-                val currentVersion = try { packageManager.getPackageInfo(packageName, 0).versionName } catch (_: Exception) { null }
-                Updater.checkLatest(this) { tag, url ->
-                    runOnUiThread {
-                        if (tag != null && currentVersion != null && tag != "v$currentVersion") {
-                            showResult("Update tersedia: $tag${if (url != null) "\n$url" else ""}")
-                        }
+        val proot = try { if (nativeLib.isLoaded) nativeLib.getProotStatus() else "native lib not loaded" } catch (e: Exception) { "proot error: ${e.message}" }
+        val version = try { nativeLib.safeGetVersion() } catch (_: Exception) { "n/a" }
+        setContent {
+            ClayTheme {
+                MainScreen(proot = proot, rustVersion = version)
+            }
+        }
+        if (nativeLib.isLoaded) {
+            Updater.checkLatest(this) { tag, url ->
+                runOnUiThread {
+                    if (tag != null) {
+                        // informational only
                     }
                 }
             }
-
-            // Language switcher
-            findViewById<Button>(R.id.btn_lang_en).setOnClickListener {
-                setLocale("en")
-                recreate()
-            }
-            findViewById<Button>(R.id.btn_lang_id).setOnClickListener {
-                setLocale("id")
-                recreate()
-            }
-
-            // Theme switcher
-            findViewById<Button>(R.id.btn_theme_light).setOnClickListener {
-                AppCompatDelegate.setDefaultNightMode(
-                    AppCompatDelegate.MODE_NIGHT_NO
-                )
-                recreate()
-            }
-            findViewById<Button>(R.id.btn_theme_dark).setOnClickListener {
-                AppCompatDelegate.setDefaultNightMode(
-                    AppCompatDelegate.MODE_NIGHT_YES
-                )
-                recreate()
-            }
-
-            // Save Omniroute config
-            findViewById<Button>(R.id.btn_save_config).setOnClickListener {
-                val baseUrl = inputBaseUrl?.text?.toString() ?: ""
-                val apiKey = inputApiKey?.text?.toString() ?: ""
-                val model = inputModel?.text?.toString() ?: ""
-                if (baseUrl.isBlank()) {
-                    showResult(getString(R.string.msg_enter_prompt))
-                    return@setOnClickListener
-                }
-                if (!nativeLib.isLoaded) {
-                    showResult("Native lib not loaded — cannot configure")
-                    return@setOnClickListener
-                }
-                saveConfigAndApply(baseUrl, apiKey, model)
-                showResult(getString(R.string.msg_config_saved))
-            }
-
-            // Plan
-            findViewById<Button>(R.id.btn_plan).setOnClickListener {
-                val prompt = inputPrompt?.text?.toString() ?: ""
-                if (prompt.isBlank()) {
-                    showResult(getString(R.string.msg_enter_prompt))
-                    return@setOnClickListener
-                }
-                if (!nativeLib.isLoaded) {
-                    showResult("Native lib not loaded")
-                    return@setOnClickListener
-                }
-                showStatus(getString(R.string.status_planning))
-                val result = nativeLib.planVideo(prompt)
-                showStatus(getString(R.string.status_done))
-                showResult(result ?: "")
-            }
-
-            // Generate image
-            findViewById<Button>(R.id.btn_generate_image).setOnClickListener {
-                val prompt = inputPrompt?.text?.toString() ?: ""
-                if (prompt.isBlank()) {
-                    showResult(getString(R.string.msg_enter_prompt))
-                    return@setOnClickListener
-                }
-                if (!nativeLib.isLoaded) {
-                    showResult("Native lib not loaded")
-                    return@setOnClickListener
-                }
-                showStatus(getString(R.string.status_generating))
-                val result = nativeLib.generateImage(prompt)
-                showStatus(getString(R.string.status_done))
-                showResult(result ?: "")
-            }
-
-            // Edit video
-            findViewById<Button>(R.id.btn_edit_video).setOnClickListener {
-                val prompt = inputPrompt?.text?.toString() ?: ""
-                if (prompt.isBlank()) {
-                    showResult(getString(R.string.msg_enter_prompt))
-                    return@setOnClickListener
-                }
-                if (!nativeLib.isLoaded) {
-                    showResult("Native lib not loaded")
-                    return@setOnClickListener
-                }
-                showStatus(getString(R.string.status_editing))
-                val result = nativeLib.editVideo(prompt)
-                showStatus(getString(R.string.status_done))
-                showResult(result ?: "")
-            }
-
-            // Render video
-            findViewById<Button>(R.id.btn_render_video).setOnClickListener {
-                val html = inputPrompt?.text?.toString() ?: ""
-                if (html.isBlank()) {
-                    showResult(getString(R.string.msg_enter_prompt))
-                    return@setOnClickListener
-                }
-                if (!nativeLib.isLoaded) {
-                    showResult("Native lib not loaded")
-                    return@setOnClickListener
-                }
-                showStatus(getString(R.string.status_rendering))
-                val result = nativeLib.renderVideo(html)
-                showStatus(getString(R.string.status_done))
-                showResult(result ?: "")
-            }
-
-            // Run pipeline
-            findViewById<Button>(R.id.btn_run_pipeline).setOnClickListener {
-                val prompt = inputPrompt?.text?.toString() ?: ""
-                if (prompt.isBlank()) {
-                    showResult(getString(R.string.msg_enter_prompt))
-                    return@setOnClickListener
-                }
-                if (!nativeLib.isLoaded) {
-                    showResult("Native lib not loaded")
-                    return@setOnClickListener
-                }
-                RenderService.start(this)
-                showStatus(getString(R.string.status_planning))
-                val result = try {
-                    nativeLib.runPipeline(prompt)
-                } finally {
-                    RenderService.stop(this)
-                }
-                showStatus(getString(R.string.status_done))
-                showResult(getString(R.string.msg_pipeline_complete, result ?: ""))
-            }
-        } catch (e: Exception) {
-            Log.e("MainActivity", "onCreate crash", e)
-            val tv = TextView(this)
-            tv.text = "Crash: ${e.javaClass.simpleName}: ${e.message}\n\n${e.stackTraceToString()}"
-            tv.textSize = 12f
-            tv.setPadding(16, 16, 16, 16)
-            setContentView(tv)
         }
     }
+}
 
-    private fun setupWebView() {
-        try {
-            webView?.settings?.apply {
-                javaScriptEnabled = true
-                domStorageEnabled = true
-                cacheMode = WebSettings.LOAD_NO_CACHE
+@Composable
+private fun MainScreen(proot: String, rustVersion: String) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var prompt by remember { mutableStateOf("") }
+    var baseUrl by remember { mutableStateOf("https://api.omniroute.example.com") }
+    var apiKey by remember { mutableStateOf("") }
+    var model by remember { mutableStateOf("default") }
+    var status by remember { mutableStateOf("Idle") }
+    var result by remember { mutableStateOf("Rust engine: $rustVersion\nProot: $proot") }
+    var busy by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text(text = "AI Video Agent", style = ClayTypography.headlineMedium, color = ClayColors.TextPrimary)
+        Text(text = "Clay UI · Rust engine · Proot sidecar", color = ClayColors.TextSecondary, style = ClayTypography.bodyMedium)
+
+        ClayCard {
+            Text("Prompt", style = ClayTypography.titleMedium, color = ClayColors.TextPrimary)
+            OutlinedTextField(value = prompt, onValueChange = { prompt = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Video prompt") })
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                ClayButton("Plan") {
+                    busy = true; status = "Planning..."
+                    result = try { NativeLib().planVideo(prompt) ?: "No result" } catch (e: Exception) { "Error: ${e.message}" }
+                    status = "Done"; busy = false
+                }
+                ClayButton("Generate Image") {
+                    busy = true; status = "Generating..."
+                    result = try { NativeLib().generateImage(prompt) ?: "No result" } catch (e: Exception) { "Error: ${e.message}" }
+                    status = "Done"; busy = false
+                }
             }
-            webView?.webViewClient = WebViewClient()
-            webView?.addJavascriptInterface(AndroidConfigInterface(this), "androidConfig")
-            webView?.loadUrl("file:///android_asset/omniroute_config.html")
-        } catch (e: Exception) {
-            Log.e("MainActivity", "setupWebView error", e)
-        }
-    }
-
-    private fun saveConfigAndApply(baseUrl: String, apiKey: String, model: String) {
-        val prefs = getSharedPreferences("omniroute_config", Context.MODE_PRIVATE)
-        prefs.edit()
-            .putString("base_url", baseUrl)
-            .putString("api_key", apiKey)
-            .putString("model", model)
-            .apply()
-
-        val result = nativeLib.configureOmniroute(baseUrl, apiKey, model)
-        showStatus(getString(R.string.status_done))
-        showResult(result ?: getString(R.string.msg_config_saved))
-    }
-
-    inner class AndroidConfigInterface(private val context: Context) {
-        @JavascriptInterface
-        fun saveConfig(baseUrl: String, apiKey: String, model: String) {
-            runOnUiThread {
-                saveConfigAndApply(baseUrl, apiKey, model)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                ClayButton("Edit Video") {
+                    busy = true; status = "Editing..."
+                    result = try { NativeLib().editVideo(prompt) ?: "No result" } catch (e: Exception) { "Error: ${e.message}" }
+                    status = "Done"; busy = false
+                }
+                ClayButton("Render") {
+                    busy = true; status = "Rendering..."
+                    result = try { NativeLib().renderVideo(prompt) ?: "No result" } catch (e: Exception) { "Error: ${e.message}" }
+                    status = "Done"; busy = false
+                }
+            }
+            ClayButton("Run Pipeline") {
+                RenderService.start(context)
+                busy = true; status = "Running pipeline..."
+                result = try { NativeLib().runPipeline(prompt) ?: "No result" } finally { RenderService.stop(context); busy = false }
+                status = "Done"
             }
         }
 
-        @JavascriptInterface
-        fun getSavedConfig(): String? {
-            val prefs = context.getSharedPreferences("omniroute_config", Context.MODE_PRIVATE)
-            val baseUrl = prefs.getString("base_url", "")
-            val apiKey = prefs.getString("api_key", "")
-            val model = prefs.getString("model", "")
-            return """{"baseUrl":"$baseUrl","apiKey":"$apiKey","model":"$model"}"""
+        ClayCard {
+            Text("Omniroute Config", style = ClayTypography.titleMedium, color = ClayColors.TextPrimary)
+            OutlinedTextField(value = baseUrl, onValueChange = { baseUrl = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Base URL") })
+            OutlinedTextField(value = apiKey, onValueChange = { apiKey = it }, modifier = Modifier.fillMaxWidth(), label = { Text("API Key") })
+            OutlinedTextField(value = model, onValueChange = { model = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Model") })
+            ClayButton("Save Config") {
+                if (baseUrl.isBlank()) result = "Enter base URL" else {
+                    result = try { NativeLib().configureOmniroute(baseUrl, apiKey, model) ?: "saved" } catch (e: Exception) { "Error: ${e.message}" }
+                }
+            }
+        }
+
+        ClayCard {
+            Text("Status: $status", style = ClayTypography.titleMedium, color = ClayColors.TextPrimary)
+            if (busy) CircularProgressIndicator()
+            Text(result, style = ClayTypography.bodyMedium, color = ClayColors.TextSecondary, modifier = Modifier.padding(top = 8.dp))
         }
     }
+}
 
-    private fun setLocale(lang: String) {
-        val locale = java.util.Locale(lang)
-        java.util.Locale.setDefault(locale)
-        val config = android.content.res.Resources.getSystem().configuration
-        config.setLocale(locale)
-        val context = createConfigurationContext(config)
-        context.resources.updateConfiguration(config, context.resources.displayMetrics)
-        val prefs = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
-        prefs.edit().putString("lang", lang).apply()
+@Composable
+private fun ClayCard(content: @Composable () -> Unit) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = ClayColors.Surface),
+        modifier = Modifier.fillMaxWidth(),
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+    ) {
+        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) { content() }
     }
+}
 
-    private fun showStatus(msg: String) {
-        textStatus?.text = msg
-    }
-
-    private fun showResult(msg: String) {
-        textResult?.text = msg
+@Composable
+private fun ClayButton(label: String, onClick: () -> Unit) {
+    Button(onClick = onClick, shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp), colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = ClayColors.Primary)) {
+        Text(label, color = androidx.compose.ui.graphics.Color.White)
     }
 }
