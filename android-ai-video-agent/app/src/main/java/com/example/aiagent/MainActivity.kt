@@ -34,7 +34,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val proot = try { if (nativeLib.isLoaded) nativeLib.getProotStatus() else "native lib not loaded" } catch (e: Exception) { "proot error: ${e.message}" }
+        val proot = try { if (nativeLib.isLoaded) (nativeLib.getProotStatus() ?: "proot status unknown") else "native lib not loaded" } catch (e: Exception) { "proot error: ${e.message}" }
         val version = try { nativeLib.safeGetVersion() } catch (_: Exception) { "n/a" }
         setContent {
             ClayTheme {
