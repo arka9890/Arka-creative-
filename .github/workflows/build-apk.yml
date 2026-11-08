@@ -32,6 +32,10 @@ jobs:
         with:
           targets: aarch64-linux-android
 
+      - name: Run Rust tests
+        working-directory: android-ai-video-agent/rust
+        run: cargo test
+
       - name: Install cargo-ndk
         run: cargo install cargo-ndk
 
