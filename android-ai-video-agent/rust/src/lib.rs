@@ -1,12 +1,18 @@
 //! AI Video Agent — Rust native engine (JNI cdylib).
 //!
 //! Hosts the AI agent orchestration loop (LLM via Omniroute → image generation via
-//! gflow-cli → edit via Hyperframes → render via headless Chrome + FFmpeg) that the
+//! gflow-cli → edit via Remotion → render via headless Chrome + FFmpeg) that the
 //! Android Kotlin UI drives over the JNI bridge.
 //!
-//! Task 1 scaffold: JNI entry points callable from Kotlin. Engine capabilities land
-//! in later tasks (see implementation plan).
+//! Task 1 scaffold + Task 2 agent host (Omniroute LLM client + orchestration).
+//! Task 3 gflow-cli image generation. Task 4 Remotion rendering.
+//! Task 7 end-to-end pipeline (run_pipeline) wired via JNI to Kotlin UI.
 
+mod omniroute;
+mod orchestrator;
+mod proot;
+
+use crate::proot::{ProotRuntime, install_proot_debian};
 use jni::objects::{JClass, JString};
 use jni::sys::{jint, jstring};
 use jni::JNIEnv;
@@ -16,7 +22,7 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 /// Engine init entry point called from Kotlin (`NativeLib.init`).
 #[no_mangle]
 pub extern "system" fn Java_com_example_aiagent_NativeLib_init(
-    env: JNIEnv<'_>,
+    mut env: JNIEnv<'_>,
     _class: JClass,
 ) -> jint {
     // Engine singleton / runtime wiring happens here in later tasks.
@@ -26,8 +32,169 @@ pub extern "system" fn Java_com_example_aiagent_NativeLib_init(
 /// Crate version entry point called from Kotlin (`NativeLib.getVersion`).
 #[no_mangle]
 pub extern "system" fn Java_com_example_aiagent_NativeLib_getVersion(
+    mut env: JNIEnv<'_>,
+    _class: JClass,
+) -> jstring {
+    env.new_string(VERSION).expect("failed to create JNI string").into_raw()
+}
+
+/// Configure Omniroute provider (base URL, API key, model).
+#[no_mangle]
+pub extern "system" fn Java_com_example_aiagent_NativeLib_configureOmniroute(
+    mut env: JNIEnv<'_>,
+    _class: JClass,
+    base_url: JString,
+    api_key: JString,
+    model: JString,
+) -> jstring {
+    let base_url: String = env.get_string(&base_url).expect("base_url").into();
+    let api_key: String = env.get_string(&api_key).expect("api_key").into();
+    let model: String = env.get_string(&model).expect("model").into();
+
+    let _client = omniroute::OmnirouteClient::new(base_url, api_key, model);
+    env.new_string("ok")
+        .expect("configure response")
+        .into_raw()
+}
+
+/// Plan a video from a user prompt via Omniroute LLM.
+#[no_mangle]
+pub extern "system" fn Java_com_example_aiagent_NativeLib_planVideo(
+    mut env: JNIEnv<'_>,
+    _class: JClass,
+    prompt: JString,
+) -> jstring {
+    let prompt_str: String = env.get_string(&prompt).expect("prompt").into();
+    let client = omniroute::OmnirouteClient::new(
+        "https://api.omniroute.example.com".to_string(),
+        "".to_string(),
+        "default".to_string(),
+    );
+    match client.complete("You are a video production planner.", &prompt_str) {
+        Ok(text) => env.new_string(&text).expect("plan").into_raw(),
+        Err(e) => env.new_string(&format!("ERROR: {}", e)).expect("error").into_raw(),
+    }
+}
+
+/// Generate a key image via gflow-cli (`gflow image t2i <prompt>`).
+#[no_mangle]
+pub extern "system" fn Java_com_example_aiagent_NativeLib_generateImage(
+    mut env: JNIEnv<'_>,
+    _class: JClass,
+    prompt: JString,
+) -> jstring {
+    let prompt_str: String = env.get_string(&prompt).expect("prompt").into();
+    let client = omniroute::OmnirouteClient::new(
+        "https://api.omniroute.example.com".to_string(),
+        "".to_string(),
+        "default".to_string(),
+    );
+    let orchestrator = orchestrator::Orchestrator::new(client);
+    match orchestrator.generate_image(&prompt_str) {
+        Ok(path) => env.new_string(&path).expect("image path").into_raw(),
+        Err(e) => env.new_string(&format!("ERROR: {}", e)).expect("error").into_raw(),
+    }
+}
+
+/// Edit/compose video via Remotion HTML composition.
+#[no_mangle]
+pub extern "system" fn Java_com_example_aiagent_NativeLib_editVideo(
+    mut env: JNIEnv<'_>,
+    _class: JClass,
+    plan: JString,
+) -> jstring {
+    let plan_str: String = env.get_string(&plan).expect("plan").into();
+    let client = omniroute::OmnirouteClient::new(
+        "https://api.omniroute.example.com".to_string(),
+        "".to_string(),
+        "default".to_string(),
+    );
+    let orchestrator = orchestrator::Orchestrator::new(client);
+    match orchestrator.edit_video(&plan_str) {
+        Ok(path) => env.new_string(&path).expect("html path").into_raw(),
+        Err(e) => env.new_string(&format!("ERROR: {}", e)).expect("error").into_raw(),
+    }
+}
+
+/// Render MP4 via Remotion (headless Chrome + FFmpeg).
+#[no_mangle]
+pub extern "system" fn Java_com_example_aiagent_NativeLib_renderVideo(
+    mut env: JNIEnv<'_>,
+    _class: JClass,
+    html: JString,
+) -> jstring {
+    let html_str: String = env.get_string(&html).expect("html").into();
+    let client = omniroute::OmnirouteClient::new(
+        "https://api.omniroute.example.com".to_string(),
+        "".to_string(),
+        "default".to_string(),
+    );
+    let orchestrator = orchestrator::Orchestrator::new(client);
+    match orchestrator.render_video(&html_str) {
+        Ok(path) => env.new_string(&path).expect("mp4 path").into_raw(),
+        Err(e) => env.new_string(&format!("ERROR: {}", e)).expect("error").into_raw(),
+    }
+}
+
+/// End-to-end pipeline: plan → generate image → edit → render.
+#[no_mangle]
+pub extern "system" fn Java_com_example_aiagent_NativeLib_runPipeline(
+    mut env: JNIEnv<'_>,
+    _class: JClass,
+    prompt: JString,
+) -> jstring {
+    let prompt_str: String = env.get_string(&prompt).expect("prompt").into();
+    let client = omniroute::OmnirouteClient::new(
+        "https://api.omniroute.example.com".to_string(),
+        "".to_string(),
+        "default".to_string(),
+    );
+    let orchestrator = orchestrator::Orchestrator::new(client);
+    match orchestrator.run_pipeline(&prompt_str) {
+        Ok(path) => env.new_string(&path).expect("pipeline result").into_raw(),
+        Err(e) => env.new_string(&format!("ERROR: {}", e)).expect("error").into_raw(),
+    }
+}
+
+/// Report availability of the proot + Debian sidecar runtime.
+#[no_mangle]
+pub extern "system" fn Java_com_example_aiagent_NativeLib_getProotStatus(
     env: JNIEnv<'_>,
     _class: JClass,
 ) -> jstring {
-    JString::new(env, VERSION).into_raw()
+    let rt = ProotRuntime::from_env();
+    env.new_string(rt.describe())
+        .expect("proot status")
+        .into_raw()
+}
+
+/// Install proot + Debian rootfs + Chrome + tools.
+/// Called from Kotlin: NativeLib.installProotDebian(filesDir)
+#[no_mangle]
+pub extern "system" fn Java_com_example_aiagent_NativeLib_installProotDebian(
+    mut env: JNIEnv<'_>,
+    _class: JClass,
+    files_dir: JString,
+) -> jstring {
+    let files_dir_str: String = env.get_string(&files_dir).expect("files_dir").into();
+    match install_proot_debian(&files_dir_str) {
+        Ok(()) => env.new_string("success").expect("result").into_raw(),
+        Err(e) => env.new_string(&format!("error: {}", e)).expect("error").into_raw(),
+    }
+}
+
+/// Check if a tool exists in the proot rootfs.
+/// Called from Kotlin: NativeLib.checkToolInRootfs(toolName)
+#[no_mangle]
+pub extern "system" fn Java_com_example_aiagent_NativeLib_checkToolInRootfs(
+    mut env: JNIEnv<'_>,
+    _class: JClass,
+    tool: JString,
+) -> jstring {
+    let tool_str: String = env.get_string(&tool).expect("tool").into();
+    let rt = ProotRuntime::from_env();
+    match rt.check_tool(&tool_str) {
+        Ok(found) => env.new_string(if found { "found" } else { "missing" }).expect("result").into_raw(),
+        Err(e) => env.new_string(&format!("error: {}", e)).expect("error").into_raw(),
+    }
 }
