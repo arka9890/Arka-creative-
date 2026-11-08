@@ -9,7 +9,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.background
@@ -147,7 +146,7 @@ fun ChatScreen(activity: Activity) {
     val listState = rememberLazyListState()
     Column(Modifier.fillMaxSize().padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text("Chat Agent", style = ClayTypography.headlineMedium, color = ClayColors.TextPrimary)
-        LazyColumn(state = listState, modifier = Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        LazyColumn(state = listState, modifier = Modifier.height(280.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             items(messages) { msg -> ChatBubble(msg) }
         }
         ClayCard {
