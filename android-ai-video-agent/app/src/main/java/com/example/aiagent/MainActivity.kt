@@ -24,6 +24,7 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -57,6 +58,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun App(proot: String, rustVersion: String) {
     val nav = rememberNavController()
@@ -70,7 +72,7 @@ fun App(proot: String, rustVersion: String) {
                 items.forEach { (routeKey, label) ->
                     NavigationBarItem(
                         selected = route == routeKey,
-                        onClick = { nav.navigate(routeKey) { popUpTo(nav.graph.startDestinationId) { saveState = true } launchSingleTop = true restoreState = true } },
+                        onClick = { nav.navigate(routeKey) },
                         icon = { Icon(if (routeKey == "home") Icons.Filled.Home else if (routeKey == "agent") Icons.Filled.Build else Icons.Filled.Settings, contentDescription = label, tint = if (route == routeKey) ClayColors.Primary else ClayColors.TextSecondary) },
                         label = { Text(label) }
                     )
