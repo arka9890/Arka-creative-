@@ -1,4 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">AI Video Agent</string>
+
+    <!-- Screen titles -->
+    <string name="title_agent_chat">Agent Chat</string>
+    <string name="title_video_preview">Video Preview</string>
+    <string name="title_controls">Controls</string>
+    <string name="title_omniroute_config">Omniroute Config</string>
+
+    <!-- Labels -->
+    <string name="label_prompt">Video prompt</string>
+    <string name="label_prompt_hint">e.g. \"Cinematic sunrise over mountains\"</string>
+    <string name="label_plan">Plan</string>
+    <string name="label_image">Image</string>
+    <string name="label_video">Video (MP4)</string>
+    <string name="label_status">Status</string>
+    <string name="status_idle">Idle</string>
+    <string name="status_planning">Planning...</string>
+    <string name="status_generating">Generating image...</string>
+    <string name="status_editing">Editing video...</string>
+    <string name="status_rendering">Rendering...</string>
+    <string name="status_done">Done</string>
+    <string name="status_error">Error</string>
+
+    <!-- Buttons -->
+    <string name="btn_plan">Plan</string>
+    <string name="btn_generate_image">Generate Image</string>
+    <string name="btn_edit_video">Edit Video</string>
+    <string name="btn_render_video">Render Video</string>
+    <string name="btn_run_pipeline">Run Pipeline</string>
+    <string name="btn_save_config">Save Config</string>
+
+    <!-- Omniroute config -->
+    <string name="label_base_url">Base URL</string>
+    <string name="label_base_url_hint">https://api.omniroute.example.com</string>
+    <string name="label_api_key">API Key</string>
+    <string name="label_api_key_hint">sk-...</string>
+    <string name="label_model">Model</string>
+    <string name="label_model_hint">default</string>
+
+    <!-- i18n -->
+    <string name="label_language">Language</string>
+    <string name="lang_english">English</string>
+    <string name="lang_indonesian">Bahasa Indonesia</string>
+
+    <!-- Theme -->
+    <string name="label_theme">Theme</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+
+    <!-- Messages -->
+    <string name="msg_config_saved">Config saved</string>
+    <string name="msg_enter_prompt">Please enter a prompt</string>
+    <string name="msg_pipeline_complete">Pipeline complete: %1$s</string>
+    <string name="msg_error_prefix">Error: %1$s</string>
 </resources>
