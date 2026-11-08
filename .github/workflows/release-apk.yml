@@ -19,12 +19,14 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - uses: android-actions/setup-android@v3
+      - name: Accept Android SDK licenses
+        run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
 
       - name: Set NDK env
         run: |
           NDK_DIR=$(ls -d $ANDROID_HOME/ndk/*/ | head -1)
           echo "ANDROID_NDK_HOME=$NDK_DIR" >> $GITHUB_ENV
+          echo "Using NDK: $NDK_DIR"
 
       - uses: dtolnay/rust-toolchain@stable
         with:
