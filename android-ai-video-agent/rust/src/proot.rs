@@ -12,6 +12,7 @@ use std::process::Command;
 use std::io::{Read, Write};
 use std::fs;
 use std::path::Path;
+use std::os::unix::fs::PermissionsExt;
 
 #[derive(Debug, Clone)]
 pub struct ProotRuntime {
@@ -60,23 +61,23 @@ impl ProotRuntime {
 
         // 2. Download proot binary (static ARM64)
         let proot_url = "https://github.com/termux/proot-distro/releases/download/v4.7.0/proot-arm64";
-        download_file(proot_url, &proot_bin)?;
+        Self::download_file(proot_url, &proot_bin)?;
         fs::set_permissions(&proot_bin, fs::Permissions::from_mode(0o755))
             .map_err(|e| format!("chmod proot: {}", e))?;
 
         // 3. Download Debian rootfs tarball
         let rootfs_tar = format!("{}/debian-rootfs.tar.gz", files_dir);
         let rootfs_url = "https://github.com/termux/proot-distro/releases/download/v4.7.0/debian-arm64.tar.gz";
-        download_file(rootfs_url, &rootfs_tar)?;
+        Self::download_file(rootfs_url, &rootfs_tar)?;
 
         // 4. Extract rootfs
-        extract_tar_gz(&rootfs_tar, &rootfs_path)?;
+        Self::extract_tar_gz(&rootfs_tar, &rootfs_path)?;
 
         // 5. Cleanup tarball
         let _ = fs::remove_file(&rootfs_tar);
 
         // 6. Setup inside rootfs: install packages (Chrome, gflow-cli deps, Node.js, FFmpeg, etc.)
-        setup_rootfs_packages(&rootfs_path, &proot_bin)?;
+        Self::setup_rootfs_packages(&rootfs_path, &proot_bin)?;
 
         Ok(())
     }

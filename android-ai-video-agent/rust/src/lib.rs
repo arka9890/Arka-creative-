@@ -12,7 +12,7 @@ mod omniroute;
 mod orchestrator;
 mod proot;
 
-use crate::proot::{ProotRuntime, install_proot_debian};
+use crate::proot::ProotRuntime;
 use jni::objects::{JClass, JString};
 use jni::sys::{jint, jstring};
 use jni::JNIEnv;
@@ -177,7 +177,7 @@ pub extern "system" fn Java_com_example_aiagent_NativeLib_installProotDebian(
     files_dir: JString,
 ) -> jstring {
     let files_dir_str: String = env.get_string(&files_dir).expect("files_dir").into();
-    match install_proot_debian(&files_dir_str) {
+    match ProotRuntime::install_proot_debian(&files_dir_str) {
         Ok(()) => env.new_string("success").expect("result").into_raw(),
         Err(e) => env.new_string(&format!("error: {}", e)).expect("error").into_raw(),
     }
