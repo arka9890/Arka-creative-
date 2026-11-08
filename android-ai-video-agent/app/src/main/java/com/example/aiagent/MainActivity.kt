@@ -46,7 +46,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.PasswordVisualTransformation
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -59,7 +59,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.androidView
+import androidx.compose.ui.platform.AndroidView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -159,7 +159,7 @@ fun StartupScreen(
                 .padding(16.dp)
                 .background(Color.Black, RoundedCornerShape(8.dp))
         ) {
-            androidView(
+            AndroidView(
                 factory = { ctx ->
                     TextView(ctx).apply {
                         setTextColor(Color.Green)
@@ -509,7 +509,7 @@ fun BrowserScreen(activity: Activity) {
         webChromeClient = WebChromeClient()
         loadUrl("https://novnc.com/noVNC/vnc.html?host=127.0.0.1&port=5900&autoconnect=1")
     } }
-    androidView(
+    AndroidView(
         factory = { webView },
         update = {},
         modifier = Modifier.fillMaxSize()
