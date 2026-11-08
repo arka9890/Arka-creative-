@@ -8,9 +8,11 @@ import android.os.Bundle
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,7 +21,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.weight
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -44,6 +46,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.PasswordVisualTransformation
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -56,8 +59,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFamily
-import androidx.compose.ui.graphics.FontFamily
+import androidx.compose.ui.platform.androidView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -81,7 +83,7 @@ class MainActivity : ComponentActivity() {
         val savedLang = getSharedPreferences("app_prefs", MODE_PRIVATE).getString("lang", "id") ?: "id"
         setLocale(this@MainActivity, savedLang)
         val isDark = getSharedPreferences("app_prefs", MODE_PRIVATE).getBoolean("dark", false)
-        setContent { ClayTheme(isDark = isDark) { App(activity = this) } }
+        setContent { ClayTheme(isDark = isDark) { App(nativeLib = nativeLib, activity = this) } }
     }
 }
 
@@ -93,7 +95,7 @@ data class ChatMessage(
 )
 
 @Composable
-fun App(activity: Activity) {
+fun App(nativeLib: NativeLib, activity: Activity) {
     val nav = rememberNavController()
     var startupDone by remember { mutableStateOf(false) }
     var startupLogs by remember { mutableStateOf<List<String>>(emptyList()) }
@@ -130,7 +132,7 @@ fun App(activity: Activity) {
         ) { padding ->
             NavHost(nav, startDestination = "home", Modifier.padding(padding)) {
                 composable("home") { HomeScreen(proot, version, activity) }
-                composable("chat") { ChatScreen(activity) }
+                composable("chat") { ChatScreen(nativeLib, activity) }
                 composable("config") { ConfigScreen(activity) }
                 composable("browser") { BrowserScreen(activity) }
             }
@@ -157,9 +159,9 @@ fun StartupScreen(
                 .padding(16.dp)
                 .background(Color.Black, RoundedCornerShape(8.dp))
         ) {
-            androidx.compose.ui.platform.androidView(
+            androidView(
                 factory = { ctx ->
-                    android.widget.TextView(ctx).apply {
+                    TextView(ctx).apply {
                         setTextColor(Color.Green)
                         setTextSize(12f)
                         typeface = android.graphics.Typeface.MONOSPACE
@@ -168,7 +170,7 @@ fun StartupScreen(
                         movementMethod = android.text.method.ScrollingMovementMethod()
                     }
                 },
-                update = { tv ->
+                update = { (tv: TextView) ->
                     val text = logs.joinToString("\n") { "> $it" }
                     tv.text = text
                     tv.scrollTo(0, tv.lineCount * tv.lineHeight)
@@ -295,7 +297,7 @@ fun HomeScreen(proot: String, rustVersion: String, activity: Activity) {
 }
 
 @Composable
-fun ChatScreen(activity: Activity) {
+fun ChatScreen(nativeLib: NativeLib, activity: Activity) {
     val context = activity.applicationContext
     val messages = remember { mutableStateListOf<ChatMessage>(
         ChatMessage("assistant", "Halo! Saya agent AI video. Masukkan prompt lalu pilih aksi atau ketik langsung."),
@@ -309,7 +311,8 @@ fun ChatScreen(activity: Activity) {
     Column(Modifier.fillMaxSize().padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text("Chat Agent", style = ClayTypography.headlineMedium, color = ClayColors.TextPrimary)
         LazyColumn(state = listState, modifier = Modifier.height(280.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(messages.withIndex()) { (index, msg) ->
+            items(messages) { msg ->
+                val index = messages.indexOf(msg)
                 ChatBubble(msg, index, expandedToolIndex) { newIdx ->
                     expandedToolIndex = if (expandedToolIndex == newIdx) -1 else newIdx
                 }
@@ -325,16 +328,16 @@ fun ChatScreen(activity: Activity) {
                 maxLines = 5
             )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 4.dp)) {
-                ClayButton("Plan") { dispatch(messages, "Plan", prompt, busy = { busy = it }) { NativeLib().planVideo(prompt) } }
-                ClayButton("Generate") { dispatch(messages, "Generate", prompt, busy = { busy = it }) { NativeLib().generateImage(prompt) } }
+                ClayButton("Plan") { dispatch(messages, "Plan", prompt, busy = { busy = it }) { nativeLib.planVideo(prompt) } }
+                ClayButton("Generate") { dispatch(messages, "Generate", prompt, busy = { busy = it }) { nativeLib.generateImage(prompt) } }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                ClayButton("Edit") { dispatch(messages, "Edit", prompt, busy = { busy = it }) { NativeLib().editVideo(prompt) } }
-                ClayButton("Render") { dispatch(messages, "Render", prompt, busy = { busy = it }) { NativeLib().renderVideo(prompt) } }
-                ClayButton("Pipeline") { RenderService.start(context); dispatch(messages, "Pipeline", prompt, busy = { busy = it }, finallyAction = { RenderService.stop(context) }) { NativeLib().runPipeline(prompt) } }
+                ClayButton("Edit") { dispatch(messages, "Edit", prompt, busy = { busy = it }) { nativeLib.editVideo(prompt) } }
+                ClayButton("Render") { dispatch(messages, "Render", prompt, busy = { busy = it }) { nativeLib.renderVideo(prompt) } }
+                ClayButton("Pipeline") { RenderService.start(context); dispatch(messages, "Pipeline", prompt, busy = { busy = it }, finallyAction = { RenderService.stop(context) }) { nativeLib.runPipeline(prompt) } }
             }
             if (busy) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                CircularProgressIndicator(modifier = Modifier.size(18.dp))
+                CircularProgressIndicator(modifier = size(18.dp))
                 Text("Bekerja...", color = ClayColors.TextSecondary, style = ClayTypography.bodyMedium)
             }
         }
@@ -357,7 +360,7 @@ fun ChatBubble(msg: ChatMessage, index: Int, expandedIndex: Int, onToggle: (Int)
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 if (msg.isStreaming) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        CircularProgressIndicator(modifier = Modifier.size(14.dp))
+                        CircularProgressIndicator(modifier = size(14.dp))
                         Text(msg.text, color = if (isUser) Color.White else ClayColors.TextPrimary, style = ClayTypography.bodyMedium)
                     }
                 } else {
@@ -449,7 +452,7 @@ fun ConfigScreen(activity: Activity) {
                 }
             }
             OutlinedTextField(value = baseUrl, onValueChange = { baseUrl = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Base URL") })
-            OutlinedTextField(value = apiKey, onValueChange = { apiKey = it }, modifier = Modifier.fillMaxWidth(), label = { Text("API Key") }, visualTransformation = androidx.compose.material3.PasswordVisualTransformation())
+            OutlinedTextField(value = apiKey, onValueChange = { apiKey = it }, modifier = Modifier.fillMaxWidth(), label = { Text("API Key") }, visualTransformation = PasswordVisualTransformation())
             OutlinedTextField(value = model, onValueChange = { model = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Model") })
             ClayButton("Simpan Provider") {
                 val res = try { NativeLib().configureOmniroute(baseUrl, apiKey, model) ?: "Tersimpan" } catch (e: Exception) { "Error: ${e.message}" }
@@ -506,7 +509,7 @@ fun BrowserScreen(activity: Activity) {
         webChromeClient = WebChromeClient()
         loadUrl("https://novnc.com/noVNC/vnc.html?host=127.0.0.1&port=5900&autoconnect=1")
     } }
-    androidx.compose.ui.platform.androidView(
+    androidView(
         factory = { webView },
         update = {},
         modifier = Modifier.fillMaxSize()
