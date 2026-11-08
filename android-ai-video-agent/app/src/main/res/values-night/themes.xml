@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark theme overrides -->
+    <style name="AppTheme" parent="Theme.AppCompat">
+        <item name="colorPrimary">#8D6E63</item>
+        <item name="colorPrimaryDark">#5D4037</item>
+        <item name="colorAccent">#A1887F</item>
+        <item name="android:windowBackground">@color/bg_dark</item>
+        <item name="android:textColorPrimary">@color/text_dark_primary</item>
+        <item name="android:textColorSecondary">@color/text_dark_secondary</item>
+    </style>
+
+    <style name="SkeuomorphicButton" parent="Widget.AppCompat.Button">
+        <item name="android:background">@drawable/skeuomorphic_button_dark</item>
+        <item name="android:textColor">@color/btn_text_dark</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:padding">12dp</item>
+        <item name="android:layout_margin">8dp</item>
+    </style>
+
+    <style name="SkeuomorphicCard">
+        <item name="android:background">@drawable/skeuomorphic_card_dark</item>
+        <item name="android:padding">16dp</item>
+        <item name="android:layout_margin">12dp</item>
+    </style>
+</resources>

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Omniroute Config</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: linear-gradient(135deg, #f5f5f0 0%, #e8e2d8 100%);
+    color: #3e2723;
+    padding: 24px;
+  }
+  h1 { font-size: 20px; margin-bottom: 16px; color: #4e342e; }
+  .card {
+    background: rgba(255,255,255,0.7);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.6);
+    max-width: 420px;
+  }
+  label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 14px; color: #5d4037; }
+  input {
+    width: 100%;
+    padding: 10px 12px;
+    margin-bottom: 14px;
+    border: 2px solid #c8afa4;
+    border-radius: 8px;
+    background: #fff;
+    color: #3e2723;
+    font-size: 14px;
+    outline: none;
+  }
+  input:focus { border-color: #6d4c41; }
+  button {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #c8afa4 0%, #a1887f 100%);
+    border: none;
+    border-radius: 8px;
+    color: #3e2723;
+    font-weight: bold;
+    font-size: 15px;
+    cursor: pointer;
+    box-shadow: 0 3px 0 #795548;
+  }
+  button:active { transform: translateY(2px); box-shadow: 0 1px 0 #795548; }
+  #status {
+    margin-top: 12px;
+    font-size: 13px;
+    min-height: 20px;
+    font-weight: 600;
+  }
+  #status.ok { color: #2e7d32; }
+  #status.err { color: #c62828; }
+</style>
+</head>
+<body>
+  <h1>Omniroute Config</h1>
+  <div class="card">
+    <label for="baseUrl">Base URL</label>
+    <input type="text" id="baseUrl" placeholder="https://api.omniroute.example.com">
+
+    <label for="apiKey">API Key</label>
+    <input type="password" id="apiKey" placeholder="sk-...">
+
+    <label for="model">Model</label>
+    <input type="text" id="model" placeholder="default">
+
+    <button id="saveBtn">Save Config</button>
+    <div id="status"></div>
+  </div>
+
+  <script>
+    const baseUrlEl = document.getElementById('baseUrl');
+    const apiKeyEl = document.getElementById('apiKey');
+    const modelEl = document.getElementById('model');
+    const saveBtn = document.getElementById('saveBtn');
+    const statusEl = document.getElementById('status');
+
+    // Load saved values from native via Android interface
+    function loadSaved() {
+      try {
+        const saved = window.androidConfig.getSavedConfig();
+        if (saved) {
+          const obj = JSON.parse(saved);
+          if (obj.baseUrl) baseUrlEl.value = obj.baseUrl;
+          if (obj.apiKey) apiKeyEl.value = obj.apiKey;
+          if (obj.model) modelEl.value = obj.model;
+        }
+      } catch (e) {
+        console.log('load saved failed:', e);
+      }
+    }
+
+    saveBtn.addEventListener('click', () => {
+      const baseUrl = baseUrlEl.value.trim();
+      const apiKey = apiKeyEl.value.trim();
+      const model = modelEl.value.trim();
+
+      if (!baseUrl) {
+        statusEl.textContent = 'Base URL is required';
+        statusEl.className = 'err';
+        return;
+      }
+
+      try {
+        window.androidConfig.saveConfig(baseUrl, apiKey, model);
+        statusEl.textContent = 'Configuration saved';
+        statusEl.className = 'ok';
+      } catch (e) {
+        statusEl.textContent = 'Save failed: ' + e;
+        statusEl.className = 'err';
+      }
+    });
+
+    loadSaved();
+  </script>
+</body>
+</html>

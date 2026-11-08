@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Light theme colors -->
+    <color name="bg_light">#F5F5F0</color>
+    <color name="text_light_primary">#3E2723</color>
+    <color name="text_light_secondary">#5D4037</color>
+    <color name="btn_text_light">#3E2723</color>
+
+    <!-- Dark theme colors -->
+    <color name="bg_dark">#262320</color>
+    <color name="text_dark_primary">#D7CCC8</color>
+    <color name="text_dark_secondary">#A1887F</color>
+    <color name="btn_text_dark">#D7CCC8</color>
+
+    <!-- Shared -->
+    <color name="color_primary">#6D4C41</color>
+    <color name="color_primary_dark">#4E342E</color>
+    <color name="color_accent">#8D6E63</color>
+</resources>

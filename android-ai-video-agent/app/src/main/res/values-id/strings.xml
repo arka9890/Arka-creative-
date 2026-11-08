@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App name -->
+    <string name="app_name">AI Video Agent</string>
+
+    <!-- Screen titles -->
+    <string name="title_agent_chat">Obrolan Agen</string>
+    <string name="title_video_preview">Pratinjau Video</string>
+    <string name="title_controls">Kontrol</string>
+    <string name="title_omniroute_config">Konfigurasi Omniroute</string>
+
+    <!-- Labels -->
+    <string name="label_prompt">Prompt video</string>
+    <string name="label_prompt_hint">contoh: \"Sinematik matahari terbit di atas pegunungan\"\</string>
+    <string name="label_plan">Rencana</string>
+    <string name="label_image">Gambar</string>
+    <string name="label_video">Video (MP4)</string>
+    <string name="label_status">Status</string>
+    <string name="status_idle">Siaga</string>
+    <string name="status_planning">Merencanakan...</string>
+    <string name="status_generating">Membuat gambar...</string>
+    <string name="status_editing">Mengedit video...</string>
+    <string name="status_rendering">Merender...</string>
+    <string name="status_done">Selesai</string>
+    <string name="status_error">Error</string>
+
+    <!-- Buttons -->
+    <string name="btn_plan">Rencanakan</string>
+    <string name="btn_generate_image">Buat Gambar</string>
+    <string name="btn_edit_video">Edit Video</string>
+    <string name="btn_render_video">Render Video</string>
+    <string name="btn_run_pipeline">Jalankan Pipeline</string>
+    <string name="btn_save_config">Simpan Konfigurasi</string>
+
+    <!-- Omniroute config -->
+    <string name="label_base_url">URL Dasar</string>
+    <string name="label_base_url_hint">https://api.omniroute.example.com</string>
+    <string name="label_api_key">Kunci API</string>
+    <string name="label_api_key_hint">sk-...</string>
+    <string name="label_model">Model</string>
+    <string name="label_model_hint">default</string>
+
+    <!-- i18n -->
+    <string name="label_language">Bahasa</string>
+    <string name="lang_english">English</string>
+    <string name="lang_indonesian">Bahasa Indonesia</string>
+
+    <!-- Theme -->
+    <string name="label_theme">Tema</string>
+    <string name="theme_light">Terang</string>
+    <string name="theme_dark">Gelap</string>
+
+    <!-- Messages -->
+    <string name="msg_config_saved">Konfigurasi tersimpan</string>
+    <string name="msg_enter_prompt">Silakan masukkan prompt</string>
+    <string name="msg_pipeline_complete">Pipeline selesai: %1$s</string>
+    <string name="msg_error_prefix">Error: %1$s</string>
+</resources>
