@@ -121,6 +121,7 @@ fun HomeScreen(proot: String, rustVersion: String, activity: Activity) {
         ClayCard {
             Text("Status", style = ClayTypography.titleMedium, color = ClayColors.TextPrimary)
             Text("Service render: idle", color = ClayColors.TextSecondary, style = ClayTypography.bodyMedium)
+            Text("Rootfs: ${if (java.io.File("/data/data/com.example.aiagent/files/alpine").exists()) "terpasang" else "belum terpasang (jalankan setup-alpine.sh)"}", color = ClayColors.TextSecondary, style = ClayTypography.bodyMedium)
             Text("Auto-install rootfs akan dilewati bila sudah ada.", color = ClayColors.TextSecondary, style = ClayTypography.bodyMedium)
         }
         ClayCard {
