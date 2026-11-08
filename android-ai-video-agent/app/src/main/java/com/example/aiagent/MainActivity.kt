@@ -282,7 +282,7 @@ fun HomeScreen(proot: String, rustVersion: String, activity: Activity) {
             Text("Quick Actions", style = ClayTypography.titleMedium, color = ClayColors.TextPrimary)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 ClayButton("Buka Google Login (noVNC)") {
-                    activity.startActivity(Intent(activity, BrowserScreen::class.java))
+                    activity.startActivity(Intent(activity, BrowserActivity::class.java))
                 }
                 ClayButton("Cek Update") {
                     Updater.checkLatest(activity) { tag, url ->
@@ -337,7 +337,7 @@ fun ChatScreen(nativeLib: NativeLib, activity: Activity) {
                 ClayButton("Pipeline") { RenderService.start(context); dispatch(messages, "Pipeline", prompt, busy = { busy = it }, finallyAction = { RenderService.stop(context) }) { nativeLib.runPipeline(prompt) } }
             }
             if (busy) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                CircularProgressIndicator(modifier = size(18.dp))
+                CircularProgressIndicator(modifier = Modifier.size(18.dp))
                 Text("Bekerja...", color = ClayColors.TextSecondary, style = ClayTypography.bodyMedium)
             }
         }
@@ -360,7 +360,7 @@ fun ChatBubble(msg: ChatMessage, index: Int, expandedIndex: Int, onToggle: (Int)
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 if (msg.isStreaming) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        CircularProgressIndicator(modifier = size(14.dp))
+                        CircularProgressIndicator(modifier = Modifier.size(14.dp))
                         Text(msg.text, color = if (isUser) Color.White else ClayColors.TextPrimary, style = ClayTypography.bodyMedium)
                     }
                 } else {
@@ -438,7 +438,7 @@ fun ConfigScreen(activity: Activity) {
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Provider") },
-                    modifier = Modifier.fillMaxWidth().menuAnchor(),
+                    modifier = Modifier.fillMaxWidth(),
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) }
                 )
                 DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
@@ -470,7 +470,7 @@ fun ConfigScreen(activity: Activity) {
             Text("Browser Google Login", style = ClayTypography.titleMedium, color = ClayColors.TextPrimary)
             Text("Embedded noVNC untuk gflow auth (headless Chrome via proot + Xvfb + x11vnc).", color = ClayColors.TextSecondary, style = ClayTypography.bodyMedium)
             ClayButton("Buka Browser noVNC") {
-                activity.startActivity(Intent(activity, BrowserScreen::class.java))
+                activity.startActivity(Intent(activity, BrowserActivity::class.java))
             }
             ClayButton("Buka di Chrome Custom Tab") {
                 try { activity.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://novnc.com/noVNC/vnc.html?host=127.0.0.1&port=5900&autoconnect=1"))) } catch (_: Exception) { }
