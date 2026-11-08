@@ -170,7 +170,7 @@ fun StartupScreen(
                         movementMethod = android.text.method.ScrollingMovementMethod()
                     }
                 },
-                update = { (tv: TextView) ->
+                update = { tv: TextView ->
                     val text = logs.joinToString("\n") { "> $it" }
                     tv.text = text
                     tv.scrollTo(0, tv.lineCount * tv.lineHeight)
