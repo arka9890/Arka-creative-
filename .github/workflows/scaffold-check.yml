@@ -1,0 +1,16 @@
+name: Scaffold Check
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run scaffold check
+        run: sh android-ai-video-agent/scripts/check-scaffold.sh
