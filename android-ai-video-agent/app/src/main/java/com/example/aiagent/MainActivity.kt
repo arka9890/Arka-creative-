@@ -253,9 +253,7 @@ suspend fun runStartupChecks(
         if (res?.contains("success") == true) {
             log("SUKSES: Install selesai")
         } else {
-            log("GAGAL: $res")
-            onUpdate(logs.toList(), "error")
-            return
+            log("WARN: $res (runtime partial; app tetap dapat dibuka)")
         }
     } else {
         log("Semua sudah terpasang, skip install")
