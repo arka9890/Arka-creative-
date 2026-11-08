@@ -264,7 +264,7 @@ suspend fun runStartupChecks(
     log("Status: $status")
     log("STARTUP SELESAI")
     onUpdate(logs.toList(), "complete")
-    onComplete()
+    // Do NOT auto-trigger onComplete; let the user tap MASUK to enter the app.
 }
 
 @Composable
