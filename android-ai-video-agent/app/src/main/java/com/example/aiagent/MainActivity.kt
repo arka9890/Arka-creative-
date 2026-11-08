@@ -162,7 +162,7 @@ fun StartupScreen(
             AndroidView(
                 factory = { ctx ->
                     TextView(ctx).apply {
-                        setTextColor(Color.Green)
+                        setTextColor(android.graphics.Color.GREEN)
                         setTextSize(12f)
                         typeface = android.graphics.Typeface.MONOSPACE
                         setPadding(8, 8, 8, 8)
