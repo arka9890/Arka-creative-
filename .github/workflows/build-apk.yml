@@ -30,7 +30,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: aarch64-linux-android
+          targets: aarch64-linux-android x86_64-linux-android
 
       - name: Run Rust tests
         working-directory: android-ai-video-agent/rust
