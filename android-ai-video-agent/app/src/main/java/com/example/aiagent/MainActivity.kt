@@ -69,9 +69,12 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val savedLang = getSharedPreferences("app_prefs", MODE_PRIVATE).getString("lang", "id") ?: "id"
+        setLocale(this@MainActivity, savedLang)
         val proot = try { if (nativeLib.isLoaded) (nativeLib.getProotStatus() ?: "proot status unknown") else "native lib not loaded" } catch (e: Exception) { "proot error: ${e.message}" }
         val version = try { nativeLib.safeGetVersion() } catch (_: Exception) { "n/a" }
-        setContent { ClayTheme { App(proot = proot, rustVersion = version, activity = this) } }
+        val isDark = getSharedPreferences("app_prefs", MODE_PRIVATE).getBoolean("dark", false)
+        setContent { ClayTheme(isDark = isDark) { App(proot = proot, rustVersion = version, activity = this) } }
         if (nativeLib.isLoaded) { Updater.checkLatest(this) { _, _ -> } }
     }
 }
@@ -202,7 +205,7 @@ fun ConfigScreen(activity: Activity) {
     var result by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
     val providers = listOf("OpenAI", "Anthropic", "Gemini", "OpenRouter", "Custom")
-    var provider by remember { mutableStateOf(providers.first()) }
+    var provider by remember { mutableStateOf(getSharedPreferences("app_prefs", Context.MODE_PRIVATE).getString("provider", providers.first()) ?: providers.first()) }
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text("Konfigurasi", style = ClayTypography.headlineMedium, color = ClayColors.TextPrimary)
         ClayCard {
@@ -231,10 +234,10 @@ fun ConfigScreen(activity: Activity) {
         ClayCard {
             Text("Bahasa & Tema", style = ClayTypography.titleMedium, color = ClayColors.TextPrimary)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                ClayButton("English") { setLocale(activity, "en"); activity.recreate() }
-                ClayButton("Bahasa") { setLocale(activity, "id"); activity.recreate() }
-                ClayButton("Terang") { AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO); activity.recreate() }
-                ClayButton("Gelap") { AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES); activity.recreate() }
+                ClayButton("English") { setLocale(activity, "en"); activity.getSharedPreferences("app_prefs", Context.MODE_PRIVATE).edit().putString("lang", "en").apply(); activity.recreate() }
+                ClayButton("Bahasa") { setLocale(activity, "id"); activity.getSharedPreferences("app_prefs", Context.MODE_PRIVATE).edit().putString("lang", "id").apply(); activity.recreate() }
+                ClayButton("Terang") { activity.getSharedPreferences("app_prefs", Context.MODE_PRIVATE).edit().putBoolean("dark", false).apply(); AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO); activity.recreate() }
+                ClayButton("Gelap") { activity.getSharedPreferences("app_prefs", Context.MODE_PRIVATE).edit().putBoolean("dark", true).apply(); AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES); activity.recreate() }
             }
         }
         ClayCard {
